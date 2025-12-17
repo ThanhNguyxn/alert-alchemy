@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
+  <defs>
+    <linearGradient id="beakerGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06B6D4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  <!-- Beaker body -->
+  <path d="M20 8 L20 24 L12 52 C11 56 14 60 18 60 L46 60 C50 60 53 56 52 52 L44 24 L44 8 Z" 
+        fill="none" stroke="url(#beakerGrad)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/>
+  <!-- Beaker rim -->
+  <path d="M16 8 L48 8" stroke="url(#beakerGrad)" stroke-width="3" stroke-linecap="round"/>
+  <!-- Liquid -->
+  <path d="M16 40 L20 32 L28 38 L36 30 L44 36 L48 40 L46 52 C45 55 43 57 40 57 L24 57 C21 57 19 55 18 52 Z" 
+        fill="#06B6D4" opacity="0.6"/>
+  <!-- Bubbles -->
+  <circle cx="26" cy="48" r="3" fill="#fff" opacity="0.8"/>
+  <circle cx="36" cy="44" r="2" fill="#fff" opacity="0.7"/>
+  <circle cx="30" cy="52" r="2" fill="#fff" opacity="0.6"/>
+</svg>

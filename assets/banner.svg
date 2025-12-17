@@ -1,0 +1,86 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 300" width="1200" height="300">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#0F172A;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#1E293B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#0F172A;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#06B6D4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#8B5CF6;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#EC4899;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="beakerFill" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#06B6D4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#8B5CF6;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="300" fill="url(#bgGrad)"/>
+  
+  <!-- Decorative grid -->
+  <g opacity="0.1" stroke="#06B6D4" stroke-width="1">
+    <line x1="0" y1="50" x2="1200" y2="50"/>
+    <line x1="0" y1="100" x2="1200" y2="100"/>
+    <line x1="0" y1="200" x2="1200" y2="200"/>
+    <line x1="0" y1="250" x2="1200" y2="250"/>
+    <line x1="100" y1="0" x2="100" y2="300"/>
+    <line x1="200" y1="0" x2="200" y2="300"/>
+    <line x1="1000" y1="0" x2="1000" y2="300"/>
+    <line x1="1100" y1="0" x2="1100" y2="300"/>
+  </g>
+  
+  <!-- Left beaker icon -->
+  <g transform="translate(80, 90)" filter="url(#glow)">
+    <path d="M30 10 L30 45 L15 100 C12 110 18 120 28 120 L72 120 C82 120 88 110 85 100 L70 45 L70 10 Z" 
+          fill="none" stroke="url(#beakerFill)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M22 10 L78 10" stroke="url(#beakerFill)" stroke-width="4" stroke-linecap="round"/>
+    <path d="M24 75 L32 60 L48 72 L64 55 L76 68 L80 78 L72 105 C70 112 65 115 58 115 L42 115 C35 115 30 112 28 105 Z" 
+          fill="#06B6D4" opacity="0.6"/>
+    <circle cx="38" cy="95" r="5" fill="#fff" opacity="0.7"/>
+    <circle cx="55" cy="88" r="3" fill="#fff" opacity="0.6"/>
+    <circle cx="45" cy="102" r="3" fill="#fff" opacity="0.5"/>
+  </g>
+  
+  <!-- Alert icon -->
+  <g transform="translate(1020, 100)" filter="url(#glow)">
+    <path d="M50 10 L90 80 C93 86 89 92 82 92 L18 92 C11 92 7 86 10 80 L50 10 Z" 
+          fill="none" stroke="#F59E0B" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M50 18 L84 76 C85 78 84 82 81 82 L19 82 C16 82 15 78 16 76 L50 18 Z" 
+          fill="#F59E0B" opacity="0.3"/>
+    <rect x="46" y="35" width="8" height="25" rx="4" fill="#F59E0B"/>
+    <circle cx="50" cy="72" r="5" fill="#F59E0B"/>
+  </g>
+  
+  <!-- Main title -->
+  <text x="600" y="130" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="72" font-weight="800" fill="url(#accentGrad)">
+    alert-alchemy
+  </text>
+  
+  <!-- Subtitle -->
+  <text x="600" y="180" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="24" fill="#94A3B8">
+    CLI incident-response simulator
+  </text>
+  
+  <!-- Tagline -->
+  <text x="600" y="220" text-anchor="middle" font-family="system-ui, -apple-system, 'Segoe UI', sans-serif" font-size="18" fill="#64748B">
+    🧪 Brew fixes from noisy alerts • Practice on-call without the 3AM pages
+  </text>
+  
+  <!-- Bottom accent line -->
+  <rect x="300" y="260" width="600" height="4" rx="2" fill="url(#accentGrad)" opacity="0.8"/>
+  
+  <!-- Sparkle decorations -->
+  <circle cx="250" cy="80" r="3" fill="#06B6D4" opacity="0.6"/>
+  <circle cx="280" cy="220" r="2" fill="#8B5CF6" opacity="0.5"/>
+  <circle cx="920" cy="90" r="2" fill="#EC4899" opacity="0.6"/>
+  <circle cx="950" cy="230" r="3" fill="#06B6D4" opacity="0.5"/>
+</svg>
