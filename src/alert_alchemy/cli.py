@@ -2,11 +2,13 @@
 
 Commands:
 - start: Initialize a new game
+- play: Interactive guided mode (recommended for beginners)
 - status: Show current incidents (does not advance time)
 - logs: Show incident logs (does not advance time)
 - metrics: Show metrics table (does not advance time)
 - traces: Show traces (does not advance time)
 - action: Take an action on an incident (advances time +1)
+- actions: Show available actions per incident
 - tick: Advance time without action (advances time +1)
 - end: End the current game
 - reset: Clear game state
@@ -147,13 +149,21 @@ def traces() -> None:
 
 @app.command()
 def action(
-    incident_id: str = typer.Argument(..., help="ID of the incident to act on"),
-    action_name: str = typer.Argument(..., help="Name of the action to take"),
+    first_arg: Optional[str] = typer.Argument(None, help="Incident ID or action name"),
+    second_arg: Optional[str] = typer.Argument(None, help="Action name (if first arg is incident ID)"),
 ) -> None:
-    """Take an action on an incident (advances time +1)."""
+    """Take an action on an incident (advances time +1).
+    
+    Can be used in multiple ways:
+    - action INC-001 rollback  (explicit incident and action)
+    - action rollback          (auto-select incident if only one active)
+    - action                   (interactive selection)
+    """
     if not state_exists():
         render_no_state_message()
         raise typer.Exit(1)
+    
+    from alert_alchemy.interactive import smart_action
     
     engine = get_engine()
     
@@ -161,11 +171,39 @@ def action(
         console.print("[yellow]Game has ended. Use 'alert-alchemy reset' to start fresh.[/yellow]")
         raise typer.Exit(1)
     
-    success, message = engine.take_action(incident_id, action_name)
+    # Determine incident_id and action_name from arguments
+    incident_id: Optional[str] = None
+    action_name: Optional[str] = None
+    
+    if first_arg and second_arg:
+        # Both provided: first is incident, second is action
+        incident_id = first_arg
+        action_name = second_arg
+    elif first_arg:
+        # Only one argument - could be action name OR incident ID
+        # Check if it looks like an incident ID (starts with INC- or contains letters and numbers)
+        state = engine.state
+        if state:
+            # Check if first_arg matches any incident ID
+            matching_incident = None
+            for inc in state.incidents:
+                if inc.id == first_arg:
+                    matching_incident = inc
+                    break
+            
+            if matching_incident:
+                # It's an incident ID
+                incident_id = first_arg
+            else:
+                # Assume it's an action name
+                action_name = first_arg
+    
+    success, message = smart_action(action_name, incident_id, engine)
     render_action_result(success, message)
     
     if success and engine.state:
         console.print(f"[dim]Step: {engine.state.current_step} | Score: {engine.state.score}[/dim]")
+        console.print("\n[dim]💡 Tip: Use 'status' or 'metrics' to check the situation.[/dim]")
 
 
 @app.command()
@@ -252,6 +290,40 @@ def show(
     
     console.print(f"[red]Incident '{incident_id}' not found.[/red]")
     raise typer.Exit(1)
+
+
+@app.command()
+def play() -> None:
+    """Start interactive guided mode (recommended for beginners).
+    
+    Provides a menu-driven interface for playing the game without
+    needing to remember command syntax.
+    """
+    from alert_alchemy.interactive import interactive_play_loop
+    interactive_play_loop()
+
+
+@app.command()
+def actions(
+    incident_id: Optional[str] = typer.Argument(None, help="Show actions for specific incident only"),
+) -> None:
+    """Show available actions per incident at the current step.
+    
+    Examples:
+    - actions          (list all incidents with their actions)
+    - actions INC-002  (show only that incident's actions)
+    """
+    if not state_exists():
+        render_no_state_message()
+        raise typer.Exit(1)
+    
+    state = load_state()
+    if state is None:
+        render_no_state_message()
+        raise typer.Exit(1)
+    
+    from alert_alchemy.interactive import render_actions_list
+    render_actions_list(state, incident_id)
 
 
 if __name__ == "__main__":

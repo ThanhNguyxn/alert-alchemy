@@ -157,14 +157,28 @@ pip install -e .
 alert-alchemy start
 ```
 
-### 🚀 Try These Incidents
+### 🎯 Beginner Mode (Recommended)
+
+New to the game? Use the interactive guided mode:
 
 ```bash
-alert-alchemy start   # Load all incidents
-alert-alchemy status  # See what's on fire
-alert-alchemy action INC-001 rollback   # Take action!
-alert-alchemy action INC-002 increase-pool
-alert-alchemy action INC-003 disable-flag
+alert-alchemy start   # Start a new game
+alert-alchemy play    # Enter interactive mode with menus!
+```
+
+The `play` command provides a menu-driven interface — no need to memorize commands!
+
+### 🚀 Quick Commands
+
+```bash
+# View what's happening
+alert-alchemy status  # See all incidents
+alert-alchemy actions # List available actions per incident
+
+# Take action (multiple ways!)
+alert-alchemy action INC-001 rollback   # Explicit: incident + action
+alert-alchemy action rollback           # Easy: auto-selects if 1 incident
+alert-alchemy action                    # Interactive: prompts for choices
 ```
 
 Included scenarios:
@@ -198,11 +212,13 @@ Included scenarios:
 | Command | Advances Time | Description |
 |---------|:-------------:|-------------|
 | `start` | — | 🎮 Start a new game session |
+| `play` | — | 🕹️ **Interactive guided mode** (recommended!) |
 | `status` | ❌ | 📋 Show current incidents & game state |
 | `logs` | ❌ | 📜 Display incident logs |
 | `metrics` | ❌ | 📊 Show metrics table for all incidents |
 | `traces` | ❌ | 🔍 Display distributed traces |
-| `action <id> <name>` | ✅ +1 | ⚡ Take an action on an incident |
+| `actions` | ❌ | 📋 List available actions per incident |
+| `action [id] [name]` | ✅ +1 | ⚡ Take an action (id optional if 1 incident) |
 | `tick` | ✅ +1 | ⏰ Advance time without acting |
 | `end` | — | 🏁 End game and show final score |
 | `reset` | — | 🔄 Clear game state |
