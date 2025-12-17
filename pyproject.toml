@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "alert-alchemy"
-version = "0.1.0"
+version = "0.1.2"
 description = "A terminal/CLI incident-response simulator game where you 'brew' fixes from noisy alerts"
 readme = "README.md"
 license = {text = "MIT"}
