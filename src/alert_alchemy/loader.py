@@ -1,5 +1,7 @@
 """Incident loader from YAML files."""
 
+import os
+import sys
 from pathlib import Path
 from typing import Optional
 
@@ -8,16 +10,72 @@ import yaml
 from alert_alchemy.models import Incident, Metrics
 
 
-def load_incidents(path: str | Path = "./incidents") -> list[Incident]:
+def get_incidents_path(custom_path: str | None = None) -> Path:
+    """Get the path to the incidents directory.
+    
+    Search order:
+    1. Custom path if provided
+    2. ./incidents relative to current working directory
+    3. incidents next to the executable (when frozen via PyInstaller)
+    4. Fallback: incidents/ in the package directory (for development)
+    
+    Args:
+        custom_path: Optional custom path to incidents directory.
+        
+    Returns:
+        Path to the incidents directory.
+    """
+    # 1. Custom path takes priority
+    if custom_path:
+        custom = Path(custom_path)
+        if custom.exists():
+            return custom
+    
+    # 2. Check ./incidents relative to cwd
+    cwd_incidents = Path.cwd() / "incidents"
+    if cwd_incidents.exists():
+        return cwd_incidents
+    
+    # 3. When running as frozen executable (PyInstaller)
+    if getattr(sys, 'frozen', False):
+        # _MEIPASS is the temp folder for PyInstaller bundles
+        bundle_dir = Path(sys._MEIPASS)  # type: ignore
+        frozen_incidents = bundle_dir / "incidents"
+        if frozen_incidents.exists():
+            return frozen_incidents
+        
+        # Also check next to the executable itself
+        exe_dir = Path(sys.executable).parent
+        exe_incidents = exe_dir / "incidents"
+        if exe_incidents.exists():
+            return exe_incidents
+    
+    # 4. Fallback: check relative to this module (development mode)
+    module_dir = Path(__file__).parent
+    # Go up to repo root: src/alert_alchemy -> src -> repo_root
+    repo_root = module_dir.parent.parent
+    dev_incidents = repo_root / "incidents"
+    if dev_incidents.exists():
+        return dev_incidents
+    
+    # Return cwd/incidents as default (may not exist)
+    return cwd_incidents
+
+
+def load_incidents(path: str | Path | None = None) -> list[Incident]:
     """Load incidents from YAML files in the specified directory.
     
     Args:
-        path: Path to the incidents directory.
+        path: Path to the incidents directory. If None, uses get_incidents_path().
         
     Returns:
         List of loaded incidents.
     """
-    incidents_dir = Path(path)
+    if path is None:
+        incidents_dir = get_incidents_path()
+    else:
+        incidents_dir = Path(path)
+        
     if not incidents_dir.exists():
         return []
     

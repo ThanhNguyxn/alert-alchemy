@@ -8,7 +8,6 @@ __pycache__/
 
 # Distribution / packaging
 .Python
-build/
 develop-eggs/
 dist/
 downloads/
@@ -26,7 +25,9 @@ wheels/
 
 # PyInstaller
 *.manifest
-*.spec
+# Keep build/alert-alchemy.spec for the repo
+build/*
+!build/alert-alchemy.spec
 
 # Installer logs
 pip-log.txt

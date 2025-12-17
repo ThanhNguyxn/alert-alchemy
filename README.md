@@ -27,7 +27,8 @@
 
 - [✨ Why Alert Alchemy?](#-why-alert-alchemy)
 - [🧪 Features](#-features)
-- [⚡ Quickstart](#-quickstart)
+- [📦 Download & Run (No Python Needed)](#-download--run-no-python-needed)
+- [🧰 Developer Install](#-developer-install)
 - [🎮 Gameplay Loop](#-gameplay-loop)
 - [🧰 Commands](#-commands)
 - [🧾 Incident Schema](#-incident-schema)
@@ -73,7 +74,50 @@ Alert Alchemy is a **terminal-based simulator** that drops you into realistic on
 
 ---
 
-## ⚡ Quickstart
+## 📦 Download & Run (No Python Needed)
+
+<img src="assets/stickers/sticker_wrench.svg" width="32" align="right" alt="wrench" />
+
+Don't want to install Python? Download a pre-built executable from the [Releases page](https://github.com/ThanhNguyxn/alert-alchemy/releases).
+
+### Windows
+
+1. Download `alert-alchemy-windows.zip` from [Releases](https://github.com/ThanhNguyxn/alert-alchemy/releases)
+2. Extract the zip file
+3. Open Command Prompt or PowerShell in the extracted folder
+4. Run:
+   ```powershell
+   .\alert-alchemy.exe start
+   ```
+
+### macOS
+
+1. Download `alert-alchemy-macos.zip` from [Releases](https://github.com/ThanhNguyxn/alert-alchemy/releases)
+2. Extract the zip file
+3. Open Terminal in the extracted folder
+4. Make it executable and run:
+   ```bash
+   chmod +x alert-alchemy
+   ./alert-alchemy start
+   ```
+
+> [!NOTE]
+> On macOS, you may need to allow the app in **System Preferences → Security & Privacy** if you see a "cannot be opened" warning.
+
+### Linux
+
+1. Download `alert-alchemy-linux.zip` from [Releases](https://github.com/ThanhNguyxn/alert-alchemy/releases)
+2. Extract the zip file
+3. Open Terminal in the extracted folder
+4. Make it executable and run:
+   ```bash
+   chmod +x alert-alchemy
+   ./alert-alchemy start
+   ```
+
+---
+
+## 🧰 Developer Install
 
 <img src="assets/stickers/sticker_wrench.svg" width="32" align="right" alt="wrench" />
 
@@ -377,6 +421,8 @@ Check out [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines.
 
 Found a security issue? Please **do not** open a public issue. Instead, email the maintainers directly or open a private security advisory on GitHub.
 
+- 🔐 Security: [SECURITY.md](SECURITY.md)
+- 📜 Code of Conduct: [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md)
 ---
 
 ## 📜 License
