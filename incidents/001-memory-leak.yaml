@@ -1,0 +1,72 @@
+# Incident 001: Memory Leak in User Service
+# Difficulty: Medium | Optimal resolution: 2-3 steps
+
+id: INC-001
+title: "Memory Leak in User Service"
+severity: high
+description: |
+  The user-service pods are experiencing OOMKilled restarts every 2-3 hours.
+  Memory usage climbs linearly from startup until the 4GB limit is hit.
+  Customer-facing latency is spiking during restarts. On-call was paged at 03:14 UTC.
+
+services:
+  - user-service
+  - api-gateway
+
+metrics:
+  error_rate: 12.5
+  p95_latency: 2800
+  cpu_usage: 45.0
+  memory_usage: 98.0
+  request_count: 15000
+
+logs:
+  - "[03:14:02] WARN  user-service-7b4f8d Pod memory at 3.8GB/4GB"
+  - "[03:14:15] ERROR user-service-7b4f8d OOMKilled - restarting container"
+  - "[03:14:18] INFO  user-service-7b4f8d Pod starting (restart count: 5)"
+  - "[03:15:01] WARN  api-gateway upstream user-service unhealthy"
+  - "[03:15:22] INFO  user-service-7b4f8d Pod ready, accepting traffic"
+  - "[03:42:00] WARN  user-service-7b4f8d Memory at 2.1GB and climbing"
+
+traces:
+  - "trace-a1b2c3: GET /api/users/profile -> user-service (timeout after 5000ms)"
+  - "trace-d4e5f6: POST /api/users/settings -> user-service (503 upstream error)"
+  - "trace-g7h8i9: Heap dump shows 1.2GB retained by SessionCache"
+
+available_actions:
+  - rollback
+  - scale
+  - restart
+  - disable-flag
+  - increase-pool
+  - enable-cache
+
+correct_action: rollback
+
+timeline:
+  - step: 0
+    event: "Alert fired: user-service memory critical"
+
+  - step: 1
+    action: restart
+    outcome: "Pods restart but memory leak continues. Buys ~2 hours."
+    trade_off: "Quick fix but doesn't address root cause."
+
+  - step: 2
+    action: scale
+    outcome: "More pods share load, but all eventually OOM. Delays issue."
+    trade_off: "Increases cost, masks problem temporarily."
+
+  - step: 3
+    action: rollback
+    outcome: "Previous version stable. Memory stays flat at 800MB."
+    trade_off: "Loses new features from v2.3.1 until hotfix ready."
+    resolved: true
+
+resolution:
+  optimal_path: ["rollback"]
+  explanation: |
+    The memory leak was introduced in v2.3.1 with a change to the session cache
+    that prevented proper cleanup of expired sessions. Rolling back to v2.3.0
+    immediately stabilizes memory. A hotfix should be prepared before re-deploying.
+  post_mortem_link: "https://example.com/postmortems/INC-001"

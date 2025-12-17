@@ -1,0 +1,82 @@
+# Incident 003: Bad Feature Flag Configuration
+# Difficulty: Easy-Medium | Optimal resolution: 1-2 steps
+
+id: INC-003
+title: "Feature Flag Misconfiguration Causing 500 Errors"
+severity: high
+description: |
+  After a feature flag change at 09:45 UTC, the recommendation-service
+  is throwing NullPointerException on 30% of requests. The new "ml-v2-recs"
+  flag was enabled but the ML model endpoint wasn't configured for production.
+  Product pages are partially broken - recommendations section shows errors.
+
+services:
+  - recommendation-service
+  - product-catalog
+  - ml-inference
+
+metrics:
+  error_rate: 30.0
+  p95_latency: 1200
+  cpu_usage: 35.0
+  memory_usage: 55.0
+  request_count: 25000
+
+logs:
+  - "[09:45:12] INFO  feature-flags Flag 'ml-v2-recs' enabled for 100% traffic"
+  - "[09:45:15] ERROR recommendation-service NullPointerException at MLClient.java:47"
+  - "[09:45:15] ERROR recommendation-service ML endpoint not configured: ML_V2_ENDPOINT"
+  - "[09:45:20] WARN  product-catalog Recommendations unavailable, showing fallback"
+  - "[09:46:00] ERROR recommendation-service 7,500 errors in last 60 seconds"
+  - "[09:46:30] INFO  recommendation-service Fallback to legacy recs for affected users"
+
+traces:
+  - "trace-p1q2r3: GET /products/12345 -> product-catalog -> recommendation-service (500)"
+  - "trace-s4t5u6: MLClient.getRecommendations() -> null endpoint -> NPE"
+  - "trace-v7w8x9: Legacy fallback path working for 70% of requests"
+
+available_actions:
+  - rollback
+  - scale
+  - restart
+  - disable-flag
+  - increase-pool
+  - enable-cache
+
+correct_action: disable-flag
+
+timeline:
+  - step: 0
+    event: "Alert fired: recommendation-service error rate > 25%"
+
+  - step: 1
+    action: disable-flag
+    outcome: "Flag disabled. Error rate drops to 0.1% immediately."
+    trade_off: "ML v2 recommendations unavailable. Using legacy algorithm."
+    resolved: true
+
+  - step: 2
+    action: restart
+    outcome: "Services restart but config still missing. Errors continue."
+    trade_off: "Brief downtime for no benefit."
+
+  - step: 3
+    action: rollback
+    outcome: "Full rollback would work but affects other recent changes."
+    trade_off: "Overkill - flag toggle is simpler and faster."
+    resolved: true
+
+  - step: 4
+    action: scale
+    outcome: "More pods = more errors. Does not help."
+    trade_off: "Wastes resources, no improvement."
+    worsens: true
+
+resolution:
+  optimal_path: ["disable-flag"]
+  explanation: |
+    The feature flag "ml-v2-recs" was enabled without the corresponding
+    ML_V2_ENDPOINT environment variable being set in production. The fastest
+    fix is to disable the flag while ops adds the missing config. After config
+    is deployed, flag can be re-enabled with a gradual rollout (1%, 10%, 50%, 100%).
+  post_mortem_link: "https://example.com/postmortems/INC-003"
