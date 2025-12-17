@@ -1,0 +1,16 @@
+═══════════════════════════════════════════════════════
+  🧪 Alert Alchemy - Quick Start Guide
+═══════════════════════════════════════════════════════
+
+HOW TO PLAY:
+1. Extract all files from this zip to a folder
+2. Double-click PLAY.bat
+3. Enjoy the game!
+
+That's it! The interactive menu will guide you through everything.
+
+───────────────────────────────────────────────────────
+ALTERNATIVE: Open Command Prompt/PowerShell in this folder and run:
+  alert-alchemy.exe --help     (see all commands)
+  alert-alchemy.exe start      (start new game)
+  alert-alchemy.exe play       (interactive mode)

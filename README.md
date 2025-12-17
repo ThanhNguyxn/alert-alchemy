@@ -84,11 +84,12 @@ Don't want to install Python? Download a pre-built executable from the [Releases
 
 1. Download `alert-alchemy-windows.zip` from [Releases](https://github.com/ThanhNguyxn/alert-alchemy/releases)
 2. Extract the zip file
-3. Open Command Prompt or PowerShell in the extracted folder
-4. Run:
-   ```powershell
-   .\alert-alchemy.exe start
-   ```
+3. **Double-click `PLAY.bat`** — that's it!
+
+Or run from Command Prompt:
+```powershell
+.\alert-alchemy.exe
+```
 
 ### macOS
 

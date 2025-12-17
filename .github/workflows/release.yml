@@ -51,45 +51,44 @@ jobs:
         shell: bash
         run: |
           cat > dist/RUN.txt << 'EOF'
-          ═══════════════════════════════════════════════════════════════
-          🧪 Alert Alchemy - Incident Response Simulator
-          ═══════════════════════════════════════════════════════════════
+          ═══════════════════════════════════════════════════════
+            🧪 Alert Alchemy - Quick Start Guide
+          ═══════════════════════════════════════════════════════
 
-          QUICK START
-          -----------
-          1. Open a terminal/command prompt in this folder
-          2. Run the executable:
-             - Windows: alert-alchemy.exe start
-             - macOS/Linux: ./alert-alchemy start
+          HOW TO PLAY:
+          1. Extract all files from this zip to a folder
+          2. Double-click PLAY.bat (Windows) or run ./alert-alchemy (Mac/Linux)
+          3. Enjoy the game!
 
-          COMMANDS
-          --------
-          start         Start a new game session
-          status        Show current incidents
-          logs          Show incident logs
-          metrics       Show metrics table
-          traces        Show distributed traces
-          action <id> <name>  Take an action on an incident
-          end           End game and see final score
-          reset         Clear game state
+          The interactive menu will guide you through everything.
 
-          EXAMPLE SESSION
-          ---------------
-          ./alert-alchemy start
-          ./alert-alchemy status
-          ./alert-alchemy action INC-001 rollback
-          ./alert-alchemy end
-
-          MORE INFO
-          ---------
-          GitHub: https://github.com/ThanhNguyxn/alert-alchemy
-
-          Happy incident hunting! 🎮
+          ───────────────────────────────────────────────────────
+          ALTERNATIVE: Run from command line:
+            alert-alchemy --help     (see all commands)
+            alert-alchemy start      (start new game)
+            alert-alchemy play       (interactive mode)
           EOF
 
       - name: Copy incidents folder to dist
         shell: bash
         run: cp -r incidents dist/
+
+      - name: Create PLAY.bat for Windows
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          @"
+          @echo off
+          REM Alert Alchemy - One-Click Play
+          cd /d "%~dp0"
+          if not exist "alert-alchemy.exe" (
+              echo ERROR: alert-alchemy.exe not found!
+              pause
+              exit /b 1
+          )
+          alert-alchemy.exe play
+          pause
+          "@ | Out-File -FilePath dist/PLAY.bat -Encoding ASCII
 
       - name: Create artifact archive (Unix)
         if: runner.os != 'Windows'
