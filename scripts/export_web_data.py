@@ -129,15 +129,22 @@ def main():
     script_dir = Path(__file__).parent
     repo_root = script_dir.parent
     incidents_dir = repo_root / "incidents"
+    generated_dir = incidents_dir / "generated"
     output_dir = repo_root / "web" / "data"
     output_file = output_dir / "incidents.json"
     
     # Ensure output directory exists
     output_dir.mkdir(parents=True, exist_ok=True)
     
-    # Load all incidents
+    # Load all incidents from both directories
     incidents = []
+    
+    # Hand-written incidents
     yaml_files = list(incidents_dir.glob("*.yaml")) + list(incidents_dir.glob("*.yml"))
+    
+    # Generated incidents
+    if generated_dir.exists():
+        yaml_files += list(generated_dir.glob("*.yaml")) + list(generated_dir.glob("*.yml"))
     
     if not yaml_files:
         print(f"Warning: No YAML files found in {incidents_dir}", file=sys.stderr)

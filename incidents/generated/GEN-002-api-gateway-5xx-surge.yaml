@@ -1,0 +1,52 @@
+id: "GEN-002"
+title: "API Gateway 5xx Surge"
+severity: "medium"
+category: "web-api"
+description: |
+  Alert triggered for error_rate exceeding threshold. The api-gateway is showing signs of degradation. Customer impact is currently moderate.
+tags:
+  - "web-api"
+  - "medium"
+services:
+  - "api-gateway"
+  - "notification-service"
+metrics:
+  error_rate: 16
+  p95_latency: 887
+  cpu_usage: 60
+  memory_usage: 84
+  request_rate: 1980
+logs:
+  - "[2024-01-15T10:07:05Z] [ERROR] [notification-service] Connection refused: max retries exceeded"
+  - "[2024-01-15T10:41:25Z] [CRITICAL] [api-gateway] Database connection pool exhausted"
+  - "[2024-01-15T10:51:20Z] [ERROR] [notification-service] Connection refused: max retries exceeded"
+  - "[2024-01-15T10:32:34Z] [INFO] [api-gateway] Health check failed, marking unhealthy"
+  - "[2024-01-15T10:42:47Z] [ERROR] [notification-service] OOM: container killed by kernel"
+  - "[2024-01-15T10:44:44Z] [WARN] [notification-service] Request rate 1500/s approaching limit 2000/s"
+  - "[2024-01-15T10:22:36Z] [ERROR] [api-gateway] OOM: container killed by kernel"
+  - "[2024-01-15T10:22:42Z] [INFO] [notification-service] Circuit breaker OPEN for dependency notification-service"
+  - "[2024-01-15T10:20:09Z] [WARN] [api-gateway] Response time 2340ms exceeds threshold 500ms"
+traces:
+  - "[21cf] api-gateway → notification-service: 2756ms (ERROR: 503)"
+  - "[0964] api-gateway → cache: 2190ms (MISS)"
+  - "[1d0b] notification-service → notification-service: 1616ms (ERROR: 503)"
+  - "[0fa3] notification-service → cache: 1852ms (MISS)"
+actions:
+  - name: "restart"
+    note: "Restart affected pods/services"
+  - name: "clear-cache"
+    note: "Flush cached data that may be stale"
+  - name: "rollback"
+    note: "Revert to last known good deployment"
+  - name: "disable-flag"
+    note: "Turn off the feature flag causing issues"
+available_actions:
+  - "restart"
+  - "clear-cache"
+  - "rollback"
+  - "disable-flag"
+correct_action: "scale"
+optimal_resolution_steps:
+  - "Inspect the incident to gather clues"
+  - "Apply scale to address root cause"
+  - "Monitor metrics for improvement"

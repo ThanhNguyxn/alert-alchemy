@@ -1,0 +1,49 @@
+id: "GEN-005"
+title: "Audit Log Pipeline Broken"
+severity: "medium"
+category: "security"
+description: |
+  Monitoring detected anomalous behavior in audit-log. Latency percentiles are elevated and error rates climbing. This may be related to recent changes in infrastructure.
+tags:
+  - "security"
+  - "medium"
+services:
+  - "audit-log"
+  - "waf"
+metrics:
+  error_rate: 17
+  p95_latency: 707
+  cpu_usage: 87
+  memory_usage: 51
+  request_rate: 3418
+logs:
+  - "[2024-01-15T10:38:03Z] [INFO] [waf] Circuit breaker OPEN for dependency waf"
+  - "[2024-01-15T10:37:39Z] [INFO] [audit-log] Health check failed, marking unhealthy"
+  - "[2024-01-15T10:33:44Z] [INFO] [audit-log] Circuit breaker OPEN for dependency waf"
+  - "[2024-01-15T10:29:09Z] [ERROR] [audit-log] OOM: container killed by kernel"
+  - "[2024-01-15T10:52:32Z] [ERROR] [audit-log] OOM: container killed by kernel"
+  - "[2024-01-15T10:13:12Z] [WARN] [waf] Response time 2340ms exceeds threshold 500ms"
+traces:
+  - "[152a] waf → waf: 2522ms (ERROR: 503)"
+  - "[1829] audit-log → cache: 552ms (MISS)"
+  - "[1e79] waf → waf: 1210ms (TIMEOUT)"
+  - "[1e91] audit-log → waf: 896ms (OK)"
+actions:
+  - name: "rollback"
+    note: "Revert to last known good deployment"
+  - name: "restart"
+    note: "Restart affected pods/services"
+  - name: "clear-cache"
+    note: "Flush cached data that may be stale"
+  - name: "disable-flag"
+    note: "Turn off the feature flag causing issues"
+available_actions:
+  - "rollback"
+  - "restart"
+  - "clear-cache"
+  - "disable-flag"
+correct_action: "restart"
+optimal_resolution_steps:
+  - "Inspect the incident to gather clues"
+  - "Apply restart to address root cause"
+  - "Monitor metrics for improvement"

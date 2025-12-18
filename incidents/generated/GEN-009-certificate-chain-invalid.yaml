@@ -1,0 +1,52 @@
+id: "GEN-009"
+title: "Certificate Chain Invalid"
+severity: "critical"
+category: "security"
+description: |
+  Alert triggered for p95_latency exceeding threshold. The waf is showing signs of degradation. Customer impact is currently high.
+tags:
+  - "security"
+  - "critical"
+services:
+  - "waf"
+  - "secrets-manager"
+  - "audit-log"
+  - "ldap-sync"
+metrics:
+  error_rate: 57
+  p95_latency: 3511
+  cpu_usage: 84
+  memory_usage: 64
+  request_rate: 3446
+logs:
+  - "[2024-01-15T10:14:54Z] [ERROR] [audit-log] OOM: container killed by kernel"
+  - "[2024-01-15T10:31:46Z] [WARN] [audit-log] Response time 2340ms exceeds threshold 500ms"
+  - "[2024-01-15T10:56:59Z] [CRITICAL] [secrets-manager] Database connection pool exhausted"
+  - "[2024-01-15T10:05:38Z] [ERROR] [ldap-sync] JSON parse error: unexpected token at position 0"
+  - "[2024-01-15T10:00:04Z] [WARN] [secrets-manager] Response time 2340ms exceeds threshold 500ms"
+  - "[2024-01-15T10:30:42Z] [WARN] [audit-log] Response time 2340ms exceeds threshold 500ms"
+traces:
+  - "[1dc7] ldap-sync → cache: 1722ms (MISS)"
+  - "[0d64] audit-log → secrets-manager: 917ms (TIMEOUT)"
+  - "[24bc] waf → database: 2646ms (SLOW)"
+  - "[11ad] waf → cache: 1670ms (MISS)"
+  - "[1623] ldap-sync → cache: 1648ms (MISS)"
+actions:
+  - name: "clear-cache"
+    note: "Flush cached data that may be stale"
+  - name: "rollback"
+    note: "Revert to last known good deployment"
+  - name: "restart"
+    note: "Restart affected pods/services"
+  - name: "disable-flag"
+    note: "Turn off the feature flag causing issues"
+available_actions:
+  - "clear-cache"
+  - "rollback"
+  - "restart"
+  - "disable-flag"
+correct_action: "disable-flag"
+optimal_resolution_steps:
+  - "Inspect the incident to gather clues"
+  - "Apply disable-flag to address root cause"
+  - "Monitor metrics for improvement"

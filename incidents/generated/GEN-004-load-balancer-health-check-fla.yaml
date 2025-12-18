@@ -1,0 +1,51 @@
+id: "GEN-004"
+title: "Load Balancer Health Check Flapping"
+severity: "medium"
+category: "infrastructure"
+description: |
+  Monitoring detected anomalous behavior in terraform-state. Latency percentiles are elevated and error rates climbing. This may be related to recent changes in infrastructure.
+tags:
+  - "infrastructure"
+  - "medium"
+services:
+  - "terraform-state"
+  - "ingress-nginx"
+  - "k8s-control-plane"
+metrics:
+  error_rate: 20
+  p95_latency: 825
+  cpu_usage: 70
+  memory_usage: 67
+  request_rate: 3910
+logs:
+  - "[2024-01-15T10:06:16Z] [ERROR] [terraform-state] Timeout waiting for upstream response"
+  - "[2024-01-15T10:29:54Z] [WARN] [ingress-nginx] Retry attempt 3/5 for request req-4679"
+  - "[2024-01-15T10:00:34Z] [ERROR] [k8s-control-plane] OOM: container killed by kernel"
+  - "[2024-01-15T10:50:55Z] [ERROR] [ingress-nginx] JSON parse error: unexpected token at position 0"
+  - "[2024-01-15T10:09:48Z] [ERROR] [ingress-nginx] Timeout waiting for upstream response"
+  - "[2024-01-15T10:52:13Z] [INFO] [k8s-control-plane] Circuit breaker OPEN for dependency ingress-nginx"
+  - "[2024-01-15T10:02:53Z] [WARN] [terraform-state] Response time 2340ms exceeds threshold 500ms"
+  - "[2024-01-15T10:06:13Z] [ERROR] [ingress-nginx] Timeout waiting for upstream response"
+traces:
+  - "[10db] k8s-control-plane → cache: 2747ms (MISS)"
+  - "[165f] k8s-control-plane → ingress-nginx: 2699ms (TIMEOUT)"
+  - "[0d5f] ingress-nginx → ingress-nginx: 546ms (ERROR: 503)"
+actions:
+  - name: "rollback"
+    note: "Revert to last known good deployment"
+  - name: "disable-flag"
+    note: "Turn off the feature flag causing issues"
+  - name: "scale"
+    note: "Add more replicas to handle load"
+  - name: "restart"
+    note: "Restart affected pods/services"
+available_actions:
+  - "rollback"
+  - "disable-flag"
+  - "scale"
+  - "restart"
+correct_action: "disable-flag"
+optimal_resolution_steps:
+  - "Inspect the incident to gather clues"
+  - "Apply disable-flag to address root cause"
+  - "Monitor metrics for improvement"

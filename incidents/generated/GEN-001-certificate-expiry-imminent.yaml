@@ -1,0 +1,54 @@
+id: "GEN-001"
+title: "Certificate Expiry Imminent"
+severity: "low"
+category: "infrastructure"
+description: |
+  Production issue affecting core functionality. Multiple services reporting connectivity problems to k8s-control-plane. Blast radius is contained.
+tags:
+  - "infrastructure"
+  - "low"
+services:
+  - "vault"
+  - "k8s-control-plane"
+  - "ingress-nginx"
+metrics:
+  error_rate: 12
+  p95_latency: 578
+  cpu_usage: 51
+  memory_usage: 58
+  request_rate: 1112
+logs:
+  - "[2024-01-15T10:13:42Z] [ERROR] [vault] Timeout waiting for upstream response"
+  - "[2024-01-15T10:21:58Z] [ERROR] [ingress-nginx] OOM: container killed by kernel"
+  - "[2024-01-15T10:08:57Z] [CRITICAL] [ingress-nginx] Database connection pool exhausted"
+  - "[2024-01-15T10:17:11Z] [INFO] [ingress-nginx] Health check failed, marking unhealthy"
+  - "[2024-01-15T10:21:24Z] [ERROR] [k8s-control-plane] JSON parse error: unexpected token at position 0"
+  - "[2024-01-15T10:47:00Z] [CRITICAL] [vault] Database connection pool exhausted"
+  - "[2024-01-15T10:36:32Z] [CRITICAL] [ingress-nginx] Database connection pool exhausted"
+  - "[2024-01-15T10:33:05Z] [ERROR] [vault] OOM: container killed by kernel"
+  - "[2024-01-15T10:48:28Z] [ERROR] [vault] JSON parse error: unexpected token at position 0"
+traces:
+  - "[23c3] ingress-nginx → database: 2941ms (SLOW)"
+  - "[11a4] k8s-control-plane → k8s-control-plane: 256ms (TIMEOUT)"
+  - "[1def] k8s-control-plane → database: 1400ms (SLOW)"
+  - "[0f50] ingress-nginx → k8s-control-plane: 2655ms (TIMEOUT)"
+  - "[0cc2] k8s-control-plane → database: 2746ms (SLOW)"
+actions:
+  - name: "disable-flag"
+    note: "Turn off the feature flag causing issues"
+  - name: "restart"
+    note: "Restart affected pods/services"
+  - name: "scale"
+    note: "Add more replicas to handle load"
+  - name: "rollback"
+    note: "Revert to last known good deployment"
+available_actions:
+  - "disable-flag"
+  - "restart"
+  - "scale"
+  - "rollback"
+correct_action: "scale"
+optimal_resolution_steps:
+  - "Inspect the incident to gather clues"
+  - "Apply scale to address root cause"
+  - "Monitor metrics for improvement"

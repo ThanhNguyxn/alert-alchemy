@@ -1,0 +1,50 @@
+id: "GEN-008"
+title: "Partition Rebalancing Storm"
+severity: "medium"
+category: "streaming"
+description: |
+  Incident escalated after automated remediation failed. The aws-kinesis is experiencing degraded performance. On-call engineer is investigating root cause.
+tags:
+  - "streaming"
+  - "medium"
+services:
+  - "aws-kinesis"
+  - "flink-jobs"
+  - "rabbitmq"
+metrics:
+  error_rate: 25
+  p95_latency: 775
+  cpu_usage: 61
+  memory_usage: 82
+  request_rate: 963
+logs:
+  - "[2024-01-15T10:54:45Z] [ERROR] [rabbitmq] Authentication failed: token expired"
+  - "[2024-01-15T10:03:56Z] [WARN] [aws-kinesis] Request rate 1500/s approaching limit 2000/s"
+  - "[2024-01-15T10:11:35Z] [CRITICAL] [rabbitmq] Database connection pool exhausted"
+  - "[2024-01-15T10:42:56Z] [ERROR] [aws-kinesis] SSL handshake failed: certificate expired"
+  - "[2024-01-15T10:07:08Z] [ERROR] [rabbitmq] OOM: container killed by kernel"
+  - "[2024-01-15T10:16:53Z] [CRITICAL] [flink-jobs] Database connection pool exhausted"
+  - "[2024-01-15T10:52:06Z] [CRITICAL] [flink-jobs] Database connection pool exhausted"
+traces:
+  - "[19e7] rabbitmq → flink-jobs: 1927ms (ERROR: 503)"
+  - "[175b] flink-jobs → flink-jobs: 2070ms (ERROR: 503)"
+  - "[24a6] rabbitmq → flink-jobs: 1977ms (ERROR: 503)"
+actions:
+  - name: "restart"
+    note: "Restart affected pods/services"
+  - name: "clear-cache"
+    note: "Flush cached data that may be stale"
+  - name: "rollback"
+    note: "Revert to last known good deployment"
+  - name: "scale"
+    note: "Add more replicas to handle load"
+available_actions:
+  - "restart"
+  - "clear-cache"
+  - "rollback"
+  - "scale"
+correct_action: "scale"
+optimal_resolution_steps:
+  - "Inspect the incident to gather clues"
+  - "Apply scale to address root cause"
+  - "Monitor metrics for improvement"

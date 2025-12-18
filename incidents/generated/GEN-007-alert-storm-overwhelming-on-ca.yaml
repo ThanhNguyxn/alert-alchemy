@@ -1,0 +1,52 @@
+id: "GEN-007"
+title: "Alert Storm Overwhelming On-Call"
+severity: "high"
+category: "observability"
+description: |
+  Users are reporting intermittent failures when accessing core functionality. Error rates have spiked in the last 15 minutes. Initial investigation suggests increased traffic.
+tags:
+  - "observability"
+  - "high"
+services:
+  - "jaeger"
+  - "prometheus"
+  - "alertmanager"
+  - "grafana"
+metrics:
+  error_rate: 25
+  p95_latency: 2417
+  cpu_usage: 51
+  memory_usage: 71
+  request_rate: 4738
+logs:
+  - "[2024-01-15T10:58:15Z] [ERROR] [prometheus] SSL handshake failed: certificate expired"
+  - "[2024-01-15T10:23:20Z] [WARN] [grafana] Request rate 1500/s approaching limit 2000/s"
+  - "[2024-01-15T10:11:23Z] [ERROR] [alertmanager] OOM: container killed by kernel"
+  - "[2024-01-15T10:18:54Z] [ERROR] [jaeger] Authentication failed: token expired"
+  - "[2024-01-15T10:56:53Z] [WARN] [grafana] Retry attempt 3/5 for request req-2601"
+  - "[2024-01-15T10:06:50Z] [WARN] [grafana] Response time 2340ms exceeds threshold 500ms"
+  - "[2024-01-15T10:50:21Z] [ERROR] [alertmanager] SSL handshake failed: certificate expired"
+  - "[2024-01-15T10:27:08Z] [ERROR] [grafana] Authentication failed: token expired"
+traces:
+  - "[16fc] alertmanager → prometheus: 2362ms (OK)"
+  - "[187d] prometheus → cache: 2161ms (MISS)"
+  - "[098a] alertmanager → prometheus: 2398ms (ERROR: 503)"
+actions:
+  - name: "restart"
+    note: "Restart affected pods/services"
+  - name: "clear-cache"
+    note: "Flush cached data that may be stale"
+  - name: "rollback"
+    note: "Revert to last known good deployment"
+  - name: "scale"
+    note: "Add more replicas to handle load"
+available_actions:
+  - "restart"
+  - "clear-cache"
+  - "rollback"
+  - "scale"
+correct_action: "restart"
+optimal_resolution_steps:
+  - "Inspect the incident to gather clues"
+  - "Apply restart to address root cause"
+  - "Monitor metrics for improvement"

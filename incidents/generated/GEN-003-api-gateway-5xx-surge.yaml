@@ -1,0 +1,52 @@
+id: "GEN-003"
+title: "API Gateway 5xx Surge"
+severity: "high"
+category: "web-api"
+description: |
+  Incident escalated after automated remediation failed. The api-gateway is experiencing degraded performance. On-call engineer is investigating root cause.
+tags:
+  - "web-api"
+  - "high"
+services:
+  - "api-gateway"
+  - "user-service"
+metrics:
+  error_rate: 36
+  p95_latency: 2219
+  cpu_usage: 69
+  memory_usage: 58
+  request_rate: 1546
+logs:
+  - "[2024-01-15T10:04:53Z] [INFO] [api-gateway] Health check failed, marking unhealthy"
+  - "[2024-01-15T10:24:03Z] [CRITICAL] [api-gateway] Database connection pool exhausted"
+  - "[2024-01-15T10:20:03Z] [ERROR] [api-gateway] Authentication failed: token expired"
+  - "[2024-01-15T10:29:19Z] [WARN] [user-service] Response time 2340ms exceeds threshold 500ms"
+  - "[2024-01-15T10:35:46Z] [ERROR] [user-service] Connection refused: max retries exceeded"
+  - "[2024-01-15T10:59:26Z] [ERROR] [user-service] Connection refused: max retries exceeded"
+  - "[2024-01-15T10:43:49Z] [INFO] [user-service] Health check failed, marking unhealthy"
+  - "[2024-01-15T10:01:27Z] [ERROR] [api-gateway] JSON parse error: unexpected token at position 0"
+  - "[2024-01-15T10:47:57Z] [WARN] [api-gateway] Request rate 1500/s approaching limit 2000/s"
+traces:
+  - "[23ce] user-service → database: 990ms (SLOW)"
+  - "[0ab8] user-service → user-service: 1711ms (ERROR: 503)"
+  - "[0ae0] api-gateway → user-service: 1786ms (TIMEOUT)"
+  - "[0ee0] user-service → database: 488ms (SLOW)"
+actions:
+  - name: "scale"
+    note: "Add more replicas to handle load"
+  - name: "clear-cache"
+    note: "Flush cached data that may be stale"
+  - name: "restart"
+    note: "Restart affected pods/services"
+  - name: "disable-flag"
+    note: "Turn off the feature flag causing issues"
+available_actions:
+  - "scale"
+  - "clear-cache"
+  - "restart"
+  - "disable-flag"
+correct_action: "clear-cache"
+optimal_resolution_steps:
+  - "Inspect the incident to gather clues"
+  - "Apply clear-cache to address root cause"
+  - "Monitor metrics for improvement"

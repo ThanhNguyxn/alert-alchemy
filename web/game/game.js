@@ -90,6 +90,107 @@ function formatEventMessage(type, data) {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// Seeded Random Number Generator (Mulberry32)
+// ═══════════════════════════════════════════════════════════════
+
+class SeededRNG {
+    constructor(seed) {
+        this.seed = this.hashSeed(seed);
+    }
+
+    hashSeed(seed) {
+        if (typeof seed === 'number') return seed;
+        let hash = 0;
+        for (let i = 0; i < seed.length; i++) {
+            hash = ((hash << 5) - hash) + seed.charCodeAt(i);
+            hash = hash & hash;
+        }
+        return Math.abs(hash) || 1;
+    }
+
+    next() {
+        let t = this.seed += 0x6D2B79F5;
+        t = Math.imul(t ^ t >>> 15, t | 1);
+        t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+        return ((t ^ t >>> 14) >>> 0) / 4294967296;
+    }
+
+    nextInt(min, max) {
+        return Math.floor(this.next() * (max - min + 1)) + min;
+    }
+
+    shuffle(array) {
+        const result = [...array];
+        for (let i = result.length - 1; i > 0; i--) {
+            const j = Math.floor(this.next() * (i + 1));
+            [result[i], result[j]] = [result[j], result[i]];
+        }
+        return result;
+    }
+
+    pick(array) {
+        return array[Math.floor(this.next() * array.length)];
+    }
+}
+
+// ═══════════════════════════════════════════════════════════════
+// Random Events Deck
+// ═══════════════════════════════════════════════════════════════
+
+const EVENTS_DECK = [
+    { id: 'traffic_spike', title: 'Traffic Spike', icon: '📈', description: 'Sudden surge in user traffic', effects: { risk: 10, blast: 5 } },
+    { id: 'retry_storm', title: 'Retry Storm', icon: '🔄', description: 'Clients retrying failed requests', effects: { risk: 15, blast: 10 } },
+    { id: 'noisy_neighbor', title: 'Noisy Neighbor', icon: '🔊', description: 'Another tenant hogging resources', effects: { risk: 5, latency: 200 } },
+    { id: 'db_failover', title: 'DB Failover', icon: '💾', description: 'Database switched to replica', effects: { risk: 20, blast: 15 } },
+    { id: 'cache_stampede', title: 'Cache Stampede', icon: '🐂', description: 'Cache expired, massive refetch', effects: { risk: 15, errors: 8 } },
+    { id: 'deploy_rollout', title: 'Deploy Rolling Out', icon: '🚀', description: 'New version being deployed', effects: { risk: 10, blast: 5 } },
+    { id: 'ssl_renewal', title: 'SSL Cert Renewed', icon: '🔐', description: 'Certificate auto-renewed', effects: { risk: -5, blast: -5 } },
+    { id: 'autoscale_up', title: 'Autoscaler Kicked In', icon: '⬆️', description: 'More pods spinning up', effects: { risk: -10, latency: -100 } },
+    { id: 'memory_pressure', title: 'Memory Pressure', icon: '🧠', description: 'GC running frequently', effects: { risk: 10, latency: 150 } },
+    { id: 'network_blip', title: 'Network Blip', icon: '📡', description: 'Brief network interruption', effects: { risk: 5, errors: 3 } },
+    { id: 'config_drift', title: 'Config Drift Detected', icon: '⚙️', description: 'Configuration mismatch found', effects: { risk: 8, blast: 5 } },
+    { id: 'log_flood', title: 'Log Flood', icon: '📜', description: 'Logging system overwhelmed', effects: { risk: 5, latency: 50 } },
+    { id: 'queue_backlog', title: 'Queue Backlog', icon: '📬', description: 'Message queue backing up', effects: { risk: 12, blast: 8 } },
+    { id: 'cold_start', title: 'Cold Start Wave', icon: '❄️', description: 'Many containers starting cold', effects: { risk: 8, latency: 300 } },
+    { id: 'partial_outage', title: 'Partial Outage', icon: '⚠️', description: 'Some regions experiencing issues', effects: { risk: 20, errors: 10 } },
+];
+
+// ═══════════════════════════════════════════════════════════════
+// Difficulty Settings
+// ═══════════════════════════════════════════════════════════════
+
+const DIFFICULTY_SETTINGS = {
+    easy: {
+        label: 'Easy',
+        eventChance: 0.15,
+        effectivenessBase: 0.75,
+        effectivenessInspected: 0.95,
+        stepPenalty: 5,
+        hintLevel: 2,
+    },
+    normal: {
+        label: 'Normal',
+        eventChance: 0.25,
+        effectivenessBase: 0.65,
+        effectivenessInspected: 0.90,
+        stepPenalty: 10,
+        hintLevel: 1,
+    },
+    hard: {
+        label: 'Hard',
+        eventChance: 0.40,
+        effectivenessBase: 0.50,
+        effectivenessInspected: 0.80,
+        stepPenalty: 15,
+        hintLevel: 0,
+    }
+};
+
+const SEED_KEY = 'alert-alchemy-web-seed';
+const DIFFICULTY_KEY = 'alert-alchemy-difficulty';
+const INCIDENT_COUNT_KEY = 'alert-alchemy-incident-count';
+
+// ═══════════════════════════════════════════════════════════════
 // Global State Manager
 // ═══════════════════════════════════════════════════════════════
 
@@ -98,6 +199,9 @@ class GameStateManager {
         this.state = null;
         this.incidents = [];
         this.soundEnabled = true;
+        this.rng = null;
+        this.difficulty = localStorage.getItem(DIFFICULTY_KEY) || 'normal';
+        this.incidentCount = parseInt(localStorage.getItem(INCIDENT_COUNT_KEY)) || 5;
     }
 
     async loadIncidents() {
@@ -121,6 +225,10 @@ class GameStateManager {
             const saved = localStorage.getItem(STORAGE_KEY);
             if (saved) {
                 this.state = JSON.parse(saved);
+                // Restore RNG from seed
+                if (this.state.seed) {
+                    this.rng = new SeededRNG(this.state.seed + '-' + this.state.currentStep);
+                }
                 return true;
             }
         } catch (e) {
@@ -135,11 +243,40 @@ class GameStateManager {
         }
     }
 
-    startNewGame() {
+    generateSeed() {
+        // Crypto-safe random seed
+        const array = new Uint32Array(2);
+        crypto.getRandomValues(array);
+        return array[0].toString(36) + array[1].toString(36);
+    }
+
+    startNewGame(customSeed = null) {
+        // Generate or use provided seed
+        const seed = customSeed || this.generateSeed();
+        localStorage.setItem(SEED_KEY, seed);
+
+        this.rng = new SeededRNG(seed);
+
+        // Select subset of incidents based on seed
+        const count = Math.min(this.incidentCount, this.incidents.length);
+        const shuffled = this.rng.shuffle(this.incidents);
+
+        // Sort by severity within shuffle for grouped display
+        const selected = shuffled.slice(0, count).sort((a, b) => {
+            const order = { critical: 0, high: 1, medium: 2, low: 3 };
+            return (order[a.severity] || 2) - (order[b.severity] || 2);
+        });
+
+        // Apply jitter to each incident's metrics
+        const jitteredIncidents = selected.map(inc => this.applyJitter(inc));
+
         this.state = {
+            seed,
+            difficulty: this.difficulty,
             currentStep: 0,
             score: SCORING.base,
-            incidents: this.incidents.map(inc => ({
+            risk: 20, // Global risk level
+            incidents: jitteredIncidents.map(inc => ({
                 ...inc,
                 resolved: false,
                 resolvedAtStep: null,
@@ -148,15 +285,56 @@ class GameStateManager {
             })),
             actionHistory: [],
             events: [],
+            randomEvents: [],
             startedAt: Date.now(),
             ended: false
         };
         this.saveState();
     }
 
+    applyJitter(incident) {
+        // Create jittered copy (non-destructive)
+        const jittered = JSON.parse(JSON.stringify(incident));
+        const metrics = jittered.metrics || {};
+
+        // Apply ±10 to blast-related metrics
+        if (metrics.error_rate != null) {
+            metrics.error_rate = Math.max(0, Math.min(100, metrics.error_rate + this.rng.nextInt(-5, 5)));
+        }
+        if (metrics.p95_latency != null) {
+            const jitter = Math.floor(metrics.p95_latency * 0.15 * (this.rng.next() - 0.5) * 2);
+            metrics.p95_latency = Math.max(50, metrics.p95_latency + jitter);
+        }
+        if (metrics.cpu_usage != null) {
+            metrics.cpu_usage = Math.max(0, Math.min(100, metrics.cpu_usage + this.rng.nextInt(-10, 10)));
+        }
+        if (metrics.memory_usage != null) {
+            metrics.memory_usage = Math.max(0, Math.min(100, metrics.memory_usage + this.rng.nextInt(-10, 10)));
+        }
+
+        jittered.metrics = metrics;
+        return jittered;
+    }
+
     resetGame() {
         localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(SEED_KEY);
         this.state = null;
+        this.rng = null;
+    }
+
+    setDifficulty(diff) {
+        this.difficulty = diff;
+        localStorage.setItem(DIFFICULTY_KEY, diff);
+    }
+
+    setIncidentCount(count) {
+        this.incidentCount = count;
+        localStorage.setItem(INCIDENT_COUNT_KEY, count.toString());
+    }
+
+    getDifficultySettings() {
+        return DIFFICULTY_SETTINGS[this.difficulty] || DIFFICULTY_SETTINGS.normal;
     }
 
     getActiveIncidents() {
@@ -202,53 +380,82 @@ class GameStateManager {
     }
 
     takeAction(incidentId, actionName) {
-        if (!this.state || this.state.ended) return { success: false, message: 'Game not active' };
+        if (!this.state || this.state.ended) return { success: false, message: 'Game not active', outcome: 'error' };
 
         const incident = this.getIncidentById(incidentId);
         if (!incident || incident.resolved) {
-            return { success: false, message: 'Invalid incident' };
+            return { success: false, message: 'Invalid incident', outcome: 'error' };
         }
 
         this.state.currentStep++;
 
+        // Update RNG for this step
+        this.rng = new SeededRNG(this.state.seed + '-' + this.state.currentStep);
+
         const correct = this.getCorrectAction(incident);
         const isCorrect = actionName === correct;
-        const isWorsening = !isCorrect && ['restart', 'reboot', 'kill'].some(k => actionName.includes(k));
+        const settings = this.getDifficultySettings();
+
+        // Effectiveness roll based on inspection status
+        const effectiveness = incident.investigated
+            ? settings.effectivenessInspected
+            : settings.effectivenessBase;
+        const roll = this.rng.next();
+
+        let outcome = 'no_effect';
+        let message = '';
+        let delta = 0;
+
+        if (isCorrect) {
+            if (roll < effectiveness) {
+                // Full success
+                incident.resolved = true;
+                incident.resolvedAtStep = this.state.currentStep;
+                outcome = 'success';
+                message = `🎉 ${getActionDisplay(actionName).name} worked perfectly!`;
+                if (this.state.currentStep <= 2) delta = SCORING.quickBonus;
+                if (incident.investigated) delta += SCORING.investigateBonus;
+            } else {
+                // Partial success
+                outcome = 'partial';
+                message = `⚙️ Partial success. Try again or inspect more.`;
+                delta = -5;
+            }
+        } else {
+            // Wrong action
+            if (roll < 0.3) {
+                // Sometimes no effect instead of punish
+                outcome = 'no_effect';
+                message = `🤷 No noticeable effect. Maybe try something else?`;
+                delta = -5;
+            } else if (['restart', 'reboot', 'kill'].some(k => actionName.includes(k))) {
+                // Worsen
+                outcome = 'backfired';
+                message = `🔥 That backfired! Situation worsened.`;
+                delta = -SCORING.wrongPenalty - SCORING.worsenPenalty;
+                this.state.risk = Math.min(100, (this.state.risk || 20) + 15);
+            } else {
+                outcome = 'failed';
+                message = `❌ Didn't work. The problem persists.`;
+                delta = -SCORING.wrongPenalty;
+            }
+        }
 
         const record = {
             step: this.state.currentStep,
             incidentId: incident.id,
             action: actionName,
             wasCorrect: isCorrect,
-            worsened: isWorsening
+            outcome
         };
         this.state.actionHistory.push(record);
         incident.actionsTaken.push(actionName);
-
-        let message = '';
-        let delta = 0;
-
-        if (isCorrect) {
-            incident.resolved = true;
-            incident.resolvedAtStep = this.state.currentStep;
-            message = `✓ ${incident.id} resolved!`;
-            if (this.state.currentStep <= 2) delta = SCORING.quickBonus;
-            if (incident.investigated) delta += SCORING.investigateBonus;
-        } else {
-            delta = -SCORING.wrongPenalty;
-            if (isWorsening) {
-                delta -= SCORING.worsenPenalty;
-                message = '⚠️ Situation worsened!';
-            } else {
-                message = 'Action taken, not resolved.';
-            }
-        }
 
         this.state.score = this.calculateScore();
         this.addEvent(message);
         this.saveState();
 
-        return { success: isCorrect, message, delta };
+        return { success: outcome === 'success', message, delta, outcome };
     }
 
     investigate(incidentId) {
@@ -261,10 +468,47 @@ class GameStateManager {
     }
 
     tick() {
+        if (!this.state || this.state.ended) return null;
+        this.state.currentStep++;
+
+        // Update RNG for this step
+        this.rng = new SeededRNG(this.state.seed + '-' + this.state.currentStep);
+
+        // Roll for random event based on difficulty and current risk
+        const settings = this.getDifficultySettings();
+        const risk = this.state.risk || 20;
+        const eventChance = settings.eventChance + (risk / 200);
+        const event = this.rollRandomEvent(eventChance);
+
+        this.state.score = this.calculateScore();
+        this.addEvent(`⏰ One minute passed.`);
+
+        if (event) {
+            this.addEvent(`${event.icon} ${event.title}: ${event.description}`);
+            this.state.randomEvents.push({ step: this.state.currentStep, event: event.id });
+
+            // Apply event effects
+            if (event.effects.risk) {
+                this.state.risk = Math.max(0, Math.min(100, (this.state.risk || 20) + event.effects.risk));
+            }
+        }
+
+        this.saveState();
+        return event;
+    }
+
+    rollRandomEvent(chance) {
+        if (!this.rng || this.rng.next() > chance) return null;
+        return this.rng.pick(EVENTS_DECK);
+    }
+
+    stabilize() {
+        // Emergency stabilization - costs score but reduces risk
         if (!this.state || this.state.ended) return;
         this.state.currentStep++;
-        this.state.score = this.calculateScore();
-        this.addEvent(`⏰ Time advanced to step ${this.state.currentStep}`);
+        this.state.score -= 20;
+        this.state.risk = Math.max(0, (this.state.risk || 20) - 30);
+        this.addEvent('🛡️ Stabilization measures applied. Risk reduced.');
         this.saveState();
     }
 

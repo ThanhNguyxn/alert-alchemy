@@ -1,5 +1,71 @@
 [
   {
+    "id": "GEN-009",
+    "title": "Certificate Chain Invalid",
+    "severity": "critical",
+    "description": "Alert triggered for p95_latency exceeding threshold. The waf is showing signs of degradation. Customer impact is currently high.\n",
+    "services": [
+      "waf",
+      "secrets-manager",
+      "audit-log",
+      "ldap-sync"
+    ],
+    "metrics": {
+      "error_rate": 57,
+      "p95_latency": 3511,
+      "cpu_usage": 84,
+      "memory_usage": 64,
+      "request_rate": 3446
+    },
+    "logs": [
+      "[2024-01-15T10:14:54Z] [ERROR] [audit-log] OOM: container killed by kernel",
+      "[2024-01-15T10:31:46Z] [WARN] [audit-log] Response time 2340ms exceeds threshold 500ms",
+      "[2024-01-15T10:56:59Z] [CRITICAL] [secrets-manager] Database connection pool exhausted",
+      "[2024-01-15T10:05:38Z] [ERROR] [ldap-sync] JSON parse error: unexpected token at position 0",
+      "[2024-01-15T10:00:04Z] [WARN] [secrets-manager] Response time 2340ms exceeds threshold 500ms",
+      "[2024-01-15T10:30:42Z] [WARN] [audit-log] Response time 2340ms exceeds threshold 500ms"
+    ],
+    "traces": [
+      "[1dc7] ldap-sync → cache: 1722ms (MISS)",
+      "[0d64] audit-log → secrets-manager: 917ms (TIMEOUT)",
+      "[24bc] waf → database: 2646ms (SLOW)",
+      "[11ad] waf → cache: 1670ms (MISS)",
+      "[1623] ldap-sync → cache: 1648ms (MISS)"
+    ],
+    "available_actions": [
+      "clear-cache",
+      "rollback",
+      "restart",
+      "disable-flag"
+    ],
+    "correct_action": "disable-flag",
+    "short_summary": "Alert triggered for p95_latency exceeding threshold.",
+    "severity_rank": 0,
+    "actions": [
+      {
+        "name": "clear-cache",
+        "note": "Flush cached data that may be stale"
+      },
+      {
+        "name": "rollback",
+        "note": "Revert to last known good deployment"
+      },
+      {
+        "name": "restart",
+        "note": "Restart affected pods/services"
+      },
+      {
+        "name": "disable-flag",
+        "note": "Turn off the feature flag causing issues"
+      }
+    ],
+    "optimal_resolution_steps": [
+      "Inspect the incident to gather clues",
+      "Apply disable-flag to address root cause",
+      "Monitor metrics for improvement"
+    ]
+  },
+  {
     "id": "INC-002",
     "title": "Database Connection Pool Exhaustion",
     "severity": "critical",
@@ -89,6 +155,204 @@
         "outcome": "Cache reduces DB calls, frees connections over time.",
         "trade_off": "Takes 5-10 minutes to warm. Not immediate relief."
       }
+    ]
+  },
+  {
+    "id": "GEN-003",
+    "title": "API Gateway 5xx Surge",
+    "severity": "high",
+    "description": "Incident escalated after automated remediation failed. The api-gateway is experiencing degraded performance. On-call engineer is investigating root cause.\n",
+    "services": [
+      "api-gateway",
+      "user-service"
+    ],
+    "metrics": {
+      "error_rate": 36,
+      "p95_latency": 2219,
+      "cpu_usage": 69,
+      "memory_usage": 58,
+      "request_rate": 1546
+    },
+    "logs": [
+      "[2024-01-15T10:04:53Z] [INFO] [api-gateway] Health check failed, marking unhealthy",
+      "[2024-01-15T10:24:03Z] [CRITICAL] [api-gateway] Database connection pool exhausted",
+      "[2024-01-15T10:20:03Z] [ERROR] [api-gateway] Authentication failed: token expired",
+      "[2024-01-15T10:29:19Z] [WARN] [user-service] Response time 2340ms exceeds threshold 500ms",
+      "[2024-01-15T10:35:46Z] [ERROR] [user-service] Connection refused: max retries exceeded",
+      "[2024-01-15T10:59:26Z] [ERROR] [user-service] Connection refused: max retries exceeded",
+      "[2024-01-15T10:43:49Z] [INFO] [user-service] Health check failed, marking unhealthy",
+      "[2024-01-15T10:01:27Z] [ERROR] [api-gateway] JSON parse error: unexpected token at position 0",
+      "[2024-01-15T10:47:57Z] [WARN] [api-gateway] Request rate 1500/s approaching limit 2000/s"
+    ],
+    "traces": [
+      "[23ce] user-service → database: 990ms (SLOW)",
+      "[0ab8] user-service → user-service: 1711ms (ERROR: 503)",
+      "[0ae0] api-gateway → user-service: 1786ms (TIMEOUT)",
+      "[0ee0] user-service → database: 488ms (SLOW)"
+    ],
+    "available_actions": [
+      "scale",
+      "clear-cache",
+      "restart",
+      "disable-flag"
+    ],
+    "correct_action": "clear-cache",
+    "short_summary": "Incident escalated after automated remediation failed.",
+    "severity_rank": 1,
+    "actions": [
+      {
+        "name": "scale",
+        "note": "Add more replicas to handle load"
+      },
+      {
+        "name": "clear-cache",
+        "note": "Flush cached data that may be stale"
+      },
+      {
+        "name": "restart",
+        "note": "Restart affected pods/services"
+      },
+      {
+        "name": "disable-flag",
+        "note": "Turn off the feature flag causing issues"
+      }
+    ],
+    "optimal_resolution_steps": [
+      "Inspect the incident to gather clues",
+      "Apply clear-cache to address root cause",
+      "Monitor metrics for improvement"
+    ]
+  },
+  {
+    "id": "GEN-006",
+    "title": "Webhook Delivery Failures",
+    "severity": "high",
+    "description": "Production issue affecting core functionality. Multiple services reporting connectivity problems to payment-api. Blast radius is expanding.\n",
+    "services": [
+      "user-service",
+      "payment-api",
+      "auth-service"
+    ],
+    "metrics": {
+      "error_rate": 26,
+      "p95_latency": 2078,
+      "cpu_usage": 73,
+      "memory_usage": 84,
+      "request_rate": 1981
+    },
+    "logs": [
+      "[2024-01-15T10:06:45Z] [ERROR] [user-service] Authentication failed: token expired",
+      "[2024-01-15T10:44:22Z] [ERROR] [auth-service] Timeout waiting for upstream response",
+      "[2024-01-15T10:07:52Z] [ERROR] [auth-service] OOM: container killed by kernel",
+      "[2024-01-15T10:59:02Z] [ERROR] [user-service] Connection refused: max retries exceeded",
+      "[2024-01-15T10:23:15Z] [ERROR] [auth-service] JSON parse error: unexpected token at position 0",
+      "[2024-01-15T10:27:13Z] [ERROR] [payment-api] Connection refused: max retries exceeded",
+      "[2024-01-15T10:21:19Z] [ERROR] [payment-api] OOM: container killed by kernel",
+      "[2024-01-15T10:33:26Z] [ERROR] [payment-api] Timeout waiting for upstream response",
+      "[2024-01-15T10:26:06Z] [ERROR] [payment-api] SSL handshake failed: certificate expired"
+    ],
+    "traces": [
+      "[1757] user-service → database: 1477ms (SLOW)",
+      "[0741] auth-service → cache: 2057ms (MISS)",
+      "[1b14] auth-service → payment-api: 2105ms (OK)"
+    ],
+    "available_actions": [
+      "rollback",
+      "disable-flag",
+      "restart",
+      "clear-cache"
+    ],
+    "correct_action": "clear-cache",
+    "short_summary": "Production issue affecting core functionality.",
+    "severity_rank": 1,
+    "actions": [
+      {
+        "name": "rollback",
+        "note": "Revert to last known good deployment"
+      },
+      {
+        "name": "disable-flag",
+        "note": "Turn off the feature flag causing issues"
+      },
+      {
+        "name": "restart",
+        "note": "Restart affected pods/services"
+      },
+      {
+        "name": "clear-cache",
+        "note": "Flush cached data that may be stale"
+      }
+    ],
+    "optimal_resolution_steps": [
+      "Inspect the incident to gather clues",
+      "Apply clear-cache to address root cause",
+      "Monitor metrics for improvement"
+    ]
+  },
+  {
+    "id": "GEN-007",
+    "title": "Alert Storm Overwhelming On-Call",
+    "severity": "high",
+    "description": "Users are reporting intermittent failures when accessing core functionality. Error rates have spiked in the last 15 minutes. Initial investigation suggests increased traffic.\n",
+    "services": [
+      "jaeger",
+      "prometheus",
+      "alertmanager",
+      "grafana"
+    ],
+    "metrics": {
+      "error_rate": 25,
+      "p95_latency": 2417,
+      "cpu_usage": 51,
+      "memory_usage": 71,
+      "request_rate": 4738
+    },
+    "logs": [
+      "[2024-01-15T10:58:15Z] [ERROR] [prometheus] SSL handshake failed: certificate expired",
+      "[2024-01-15T10:23:20Z] [WARN] [grafana] Request rate 1500/s approaching limit 2000/s",
+      "[2024-01-15T10:11:23Z] [ERROR] [alertmanager] OOM: container killed by kernel",
+      "[2024-01-15T10:18:54Z] [ERROR] [jaeger] Authentication failed: token expired",
+      "[2024-01-15T10:56:53Z] [WARN] [grafana] Retry attempt 3/5 for request req-2601",
+      "[2024-01-15T10:06:50Z] [WARN] [grafana] Response time 2340ms exceeds threshold 500ms",
+      "[2024-01-15T10:50:21Z] [ERROR] [alertmanager] SSL handshake failed: certificate expired",
+      "[2024-01-15T10:27:08Z] [ERROR] [grafana] Authentication failed: token expired"
+    ],
+    "traces": [
+      "[16fc] alertmanager → prometheus: 2362ms (OK)",
+      "[187d] prometheus → cache: 2161ms (MISS)",
+      "[098a] alertmanager → prometheus: 2398ms (ERROR: 503)"
+    ],
+    "available_actions": [
+      "restart",
+      "clear-cache",
+      "rollback",
+      "scale"
+    ],
+    "correct_action": "restart",
+    "short_summary": "Users are reporting intermittent failures when accessing core functionality.",
+    "severity_rank": 1,
+    "actions": [
+      {
+        "name": "restart",
+        "note": "Restart affected pods/services"
+      },
+      {
+        "name": "clear-cache",
+        "note": "Flush cached data that may be stale"
+      },
+      {
+        "name": "rollback",
+        "note": "Revert to last known good deployment"
+      },
+      {
+        "name": "scale",
+        "note": "Add more replicas to handle load"
+      }
+    ],
+    "optimal_resolution_steps": [
+      "Inspect the incident to gather clues",
+      "Apply restart to address root cause",
+      "Monitor metrics for improvement"
     ]
   },
   {
@@ -244,6 +508,399 @@
         "trade_off": "Wastes resources, no improvement.",
         "worsens": true
       }
+    ]
+  },
+  {
+    "id": "GEN-002",
+    "title": "API Gateway 5xx Surge",
+    "severity": "medium",
+    "description": "Alert triggered for error_rate exceeding threshold. The api-gateway is showing signs of degradation. Customer impact is currently moderate.\n",
+    "services": [
+      "api-gateway",
+      "notification-service"
+    ],
+    "metrics": {
+      "error_rate": 16,
+      "p95_latency": 887,
+      "cpu_usage": 60,
+      "memory_usage": 84,
+      "request_rate": 1980
+    },
+    "logs": [
+      "[2024-01-15T10:07:05Z] [ERROR] [notification-service] Connection refused: max retries exceeded",
+      "[2024-01-15T10:41:25Z] [CRITICAL] [api-gateway] Database connection pool exhausted",
+      "[2024-01-15T10:51:20Z] [ERROR] [notification-service] Connection refused: max retries exceeded",
+      "[2024-01-15T10:32:34Z] [INFO] [api-gateway] Health check failed, marking unhealthy",
+      "[2024-01-15T10:42:47Z] [ERROR] [notification-service] OOM: container killed by kernel",
+      "[2024-01-15T10:44:44Z] [WARN] [notification-service] Request rate 1500/s approaching limit 2000/s",
+      "[2024-01-15T10:22:36Z] [ERROR] [api-gateway] OOM: container killed by kernel",
+      "[2024-01-15T10:22:42Z] [INFO] [notification-service] Circuit breaker OPEN for dependency notification-service",
+      "[2024-01-15T10:20:09Z] [WARN] [api-gateway] Response time 2340ms exceeds threshold 500ms"
+    ],
+    "traces": [
+      "[21cf] api-gateway → notification-service: 2756ms (ERROR: 503)",
+      "[0964] api-gateway → cache: 2190ms (MISS)",
+      "[1d0b] notification-service → notification-service: 1616ms (ERROR: 503)",
+      "[0fa3] notification-service → cache: 1852ms (MISS)"
+    ],
+    "available_actions": [
+      "restart",
+      "clear-cache",
+      "rollback",
+      "disable-flag"
+    ],
+    "correct_action": "scale",
+    "short_summary": "Alert triggered for error_rate exceeding threshold.",
+    "severity_rank": 2,
+    "actions": [
+      {
+        "name": "restart",
+        "note": "Restart affected pods/services"
+      },
+      {
+        "name": "clear-cache",
+        "note": "Flush cached data that may be stale"
+      },
+      {
+        "name": "rollback",
+        "note": "Revert to last known good deployment"
+      },
+      {
+        "name": "disable-flag",
+        "note": "Turn off the feature flag causing issues"
+      }
+    ],
+    "optimal_resolution_steps": [
+      "Inspect the incident to gather clues",
+      "Apply scale to address root cause",
+      "Monitor metrics for improvement"
+    ]
+  },
+  {
+    "id": "GEN-004",
+    "title": "Load Balancer Health Check Flapping",
+    "severity": "medium",
+    "description": "Monitoring detected anomalous behavior in terraform-state. Latency percentiles are elevated and error rates climbing. This may be related to recent changes in infrastructure.\n",
+    "services": [
+      "terraform-state",
+      "ingress-nginx",
+      "k8s-control-plane"
+    ],
+    "metrics": {
+      "error_rate": 20,
+      "p95_latency": 825,
+      "cpu_usage": 70,
+      "memory_usage": 67,
+      "request_rate": 3910
+    },
+    "logs": [
+      "[2024-01-15T10:06:16Z] [ERROR] [terraform-state] Timeout waiting for upstream response",
+      "[2024-01-15T10:29:54Z] [WARN] [ingress-nginx] Retry attempt 3/5 for request req-4679",
+      "[2024-01-15T10:00:34Z] [ERROR] [k8s-control-plane] OOM: container killed by kernel",
+      "[2024-01-15T10:50:55Z] [ERROR] [ingress-nginx] JSON parse error: unexpected token at position 0",
+      "[2024-01-15T10:09:48Z] [ERROR] [ingress-nginx] Timeout waiting for upstream response",
+      "[2024-01-15T10:52:13Z] [INFO] [k8s-control-plane] Circuit breaker OPEN for dependency ingress-nginx",
+      "[2024-01-15T10:02:53Z] [WARN] [terraform-state] Response time 2340ms exceeds threshold 500ms",
+      "[2024-01-15T10:06:13Z] [ERROR] [ingress-nginx] Timeout waiting for upstream response"
+    ],
+    "traces": [
+      "[10db] k8s-control-plane → cache: 2747ms (MISS)",
+      "[165f] k8s-control-plane → ingress-nginx: 2699ms (TIMEOUT)",
+      "[0d5f] ingress-nginx → ingress-nginx: 546ms (ERROR: 503)"
+    ],
+    "available_actions": [
+      "rollback",
+      "disable-flag",
+      "scale",
+      "restart"
+    ],
+    "correct_action": "disable-flag",
+    "short_summary": "Monitoring detected anomalous behavior in terraform-state.",
+    "severity_rank": 2,
+    "actions": [
+      {
+        "name": "rollback",
+        "note": "Revert to last known good deployment"
+      },
+      {
+        "name": "disable-flag",
+        "note": "Turn off the feature flag causing issues"
+      },
+      {
+        "name": "scale",
+        "note": "Add more replicas to handle load"
+      },
+      {
+        "name": "restart",
+        "note": "Restart affected pods/services"
+      }
+    ],
+    "optimal_resolution_steps": [
+      "Inspect the incident to gather clues",
+      "Apply disable-flag to address root cause",
+      "Monitor metrics for improvement"
+    ]
+  },
+  {
+    "id": "GEN-005",
+    "title": "Audit Log Pipeline Broken",
+    "severity": "medium",
+    "description": "Monitoring detected anomalous behavior in audit-log. Latency percentiles are elevated and error rates climbing. This may be related to recent changes in infrastructure.\n",
+    "services": [
+      "audit-log",
+      "waf"
+    ],
+    "metrics": {
+      "error_rate": 17,
+      "p95_latency": 707,
+      "cpu_usage": 87,
+      "memory_usage": 51,
+      "request_rate": 3418
+    },
+    "logs": [
+      "[2024-01-15T10:38:03Z] [INFO] [waf] Circuit breaker OPEN for dependency waf",
+      "[2024-01-15T10:37:39Z] [INFO] [audit-log] Health check failed, marking unhealthy",
+      "[2024-01-15T10:33:44Z] [INFO] [audit-log] Circuit breaker OPEN for dependency waf",
+      "[2024-01-15T10:29:09Z] [ERROR] [audit-log] OOM: container killed by kernel",
+      "[2024-01-15T10:52:32Z] [ERROR] [audit-log] OOM: container killed by kernel",
+      "[2024-01-15T10:13:12Z] [WARN] [waf] Response time 2340ms exceeds threshold 500ms"
+    ],
+    "traces": [
+      "[152a] waf → waf: 2522ms (ERROR: 503)",
+      "[1829] audit-log → cache: 552ms (MISS)",
+      "[1e79] waf → waf: 1210ms (TIMEOUT)",
+      "[1e91] audit-log → waf: 896ms (OK)"
+    ],
+    "available_actions": [
+      "rollback",
+      "restart",
+      "clear-cache",
+      "disable-flag"
+    ],
+    "correct_action": "restart",
+    "short_summary": "Monitoring detected anomalous behavior in audit-log.",
+    "severity_rank": 2,
+    "actions": [
+      {
+        "name": "rollback",
+        "note": "Revert to last known good deployment"
+      },
+      {
+        "name": "restart",
+        "note": "Restart affected pods/services"
+      },
+      {
+        "name": "clear-cache",
+        "note": "Flush cached data that may be stale"
+      },
+      {
+        "name": "disable-flag",
+        "note": "Turn off the feature flag causing issues"
+      }
+    ],
+    "optimal_resolution_steps": [
+      "Inspect the incident to gather clues",
+      "Apply restart to address root cause",
+      "Monitor metrics for improvement"
+    ]
+  },
+  {
+    "id": "GEN-008",
+    "title": "Partition Rebalancing Storm",
+    "severity": "medium",
+    "description": "Incident escalated after automated remediation failed. The aws-kinesis is experiencing degraded performance. On-call engineer is investigating root cause.\n",
+    "services": [
+      "aws-kinesis",
+      "flink-jobs",
+      "rabbitmq"
+    ],
+    "metrics": {
+      "error_rate": 25,
+      "p95_latency": 775,
+      "cpu_usage": 61,
+      "memory_usage": 82,
+      "request_rate": 963
+    },
+    "logs": [
+      "[2024-01-15T10:54:45Z] [ERROR] [rabbitmq] Authentication failed: token expired",
+      "[2024-01-15T10:03:56Z] [WARN] [aws-kinesis] Request rate 1500/s approaching limit 2000/s",
+      "[2024-01-15T10:11:35Z] [CRITICAL] [rabbitmq] Database connection pool exhausted",
+      "[2024-01-15T10:42:56Z] [ERROR] [aws-kinesis] SSL handshake failed: certificate expired",
+      "[2024-01-15T10:07:08Z] [ERROR] [rabbitmq] OOM: container killed by kernel",
+      "[2024-01-15T10:16:53Z] [CRITICAL] [flink-jobs] Database connection pool exhausted",
+      "[2024-01-15T10:52:06Z] [CRITICAL] [flink-jobs] Database connection pool exhausted"
+    ],
+    "traces": [
+      "[19e7] rabbitmq → flink-jobs: 1927ms (ERROR: 503)",
+      "[175b] flink-jobs → flink-jobs: 2070ms (ERROR: 503)",
+      "[24a6] rabbitmq → flink-jobs: 1977ms (ERROR: 503)"
+    ],
+    "available_actions": [
+      "restart",
+      "clear-cache",
+      "rollback",
+      "scale"
+    ],
+    "correct_action": "scale",
+    "short_summary": "Incident escalated after automated remediation failed.",
+    "severity_rank": 2,
+    "actions": [
+      {
+        "name": "restart",
+        "note": "Restart affected pods/services"
+      },
+      {
+        "name": "clear-cache",
+        "note": "Flush cached data that may be stale"
+      },
+      {
+        "name": "rollback",
+        "note": "Revert to last known good deployment"
+      },
+      {
+        "name": "scale",
+        "note": "Add more replicas to handle load"
+      }
+    ],
+    "optimal_resolution_steps": [
+      "Inspect the incident to gather clues",
+      "Apply scale to address root cause",
+      "Monitor metrics for improvement"
+    ]
+  },
+  {
+    "id": "GEN-001",
+    "title": "Certificate Expiry Imminent",
+    "severity": "low",
+    "description": "Production issue affecting core functionality. Multiple services reporting connectivity problems to k8s-control-plane. Blast radius is contained.\n",
+    "services": [
+      "vault",
+      "k8s-control-plane",
+      "ingress-nginx"
+    ],
+    "metrics": {
+      "error_rate": 12,
+      "p95_latency": 578,
+      "cpu_usage": 51,
+      "memory_usage": 58,
+      "request_rate": 1112
+    },
+    "logs": [
+      "[2024-01-15T10:13:42Z] [ERROR] [vault] Timeout waiting for upstream response",
+      "[2024-01-15T10:21:58Z] [ERROR] [ingress-nginx] OOM: container killed by kernel",
+      "[2024-01-15T10:08:57Z] [CRITICAL] [ingress-nginx] Database connection pool exhausted",
+      "[2024-01-15T10:17:11Z] [INFO] [ingress-nginx] Health check failed, marking unhealthy",
+      "[2024-01-15T10:21:24Z] [ERROR] [k8s-control-plane] JSON parse error: unexpected token at position 0",
+      "[2024-01-15T10:47:00Z] [CRITICAL] [vault] Database connection pool exhausted",
+      "[2024-01-15T10:36:32Z] [CRITICAL] [ingress-nginx] Database connection pool exhausted",
+      "[2024-01-15T10:33:05Z] [ERROR] [vault] OOM: container killed by kernel",
+      "[2024-01-15T10:48:28Z] [ERROR] [vault] JSON parse error: unexpected token at position 0"
+    ],
+    "traces": [
+      "[23c3] ingress-nginx → database: 2941ms (SLOW)",
+      "[11a4] k8s-control-plane → k8s-control-plane: 256ms (TIMEOUT)",
+      "[1def] k8s-control-plane → database: 1400ms (SLOW)",
+      "[0f50] ingress-nginx → k8s-control-plane: 2655ms (TIMEOUT)",
+      "[0cc2] k8s-control-plane → database: 2746ms (SLOW)"
+    ],
+    "available_actions": [
+      "disable-flag",
+      "restart",
+      "scale",
+      "rollback"
+    ],
+    "correct_action": "scale",
+    "short_summary": "Production issue affecting core functionality.",
+    "severity_rank": 3,
+    "actions": [
+      {
+        "name": "disable-flag",
+        "note": "Turn off the feature flag causing issues"
+      },
+      {
+        "name": "restart",
+        "note": "Restart affected pods/services"
+      },
+      {
+        "name": "scale",
+        "note": "Add more replicas to handle load"
+      },
+      {
+        "name": "rollback",
+        "note": "Revert to last known good deployment"
+      }
+    ],
+    "optimal_resolution_steps": [
+      "Inspect the incident to gather clues",
+      "Apply scale to address root cause",
+      "Monitor metrics for improvement"
+    ]
+  },
+  {
+    "id": "GEN-010",
+    "title": "Audit Log Pipeline Broken",
+    "severity": "low",
+    "description": "Alert triggered for p95_latency exceeding threshold. The ldap-sync is showing signs of degradation. Customer impact is currently moderate.\n",
+    "services": [
+      "ldap-sync",
+      "waf",
+      "oauth-provider"
+    ],
+    "metrics": {
+      "error_rate": 9,
+      "p95_latency": 629,
+      "cpu_usage": 74,
+      "memory_usage": 72,
+      "request_rate": 4764
+    },
+    "logs": [
+      "[2024-01-15T10:39:35Z] [WARN] [waf] Request rate 1500/s approaching limit 2000/s",
+      "[2024-01-15T10:24:22Z] [INFO] [ldap-sync] Circuit breaker OPEN for dependency waf",
+      "[2024-01-15T10:07:03Z] [ERROR] [ldap-sync] SSL handshake failed: certificate expired",
+      "[2024-01-15T10:30:24Z] [ERROR] [ldap-sync] OOM: container killed by kernel",
+      "[2024-01-15T10:55:42Z] [INFO] [oauth-provider] Circuit breaker OPEN for dependency waf",
+      "[2024-01-15T10:05:22Z] [ERROR] [oauth-provider] OOM: container killed by kernel",
+      "[2024-01-15T10:26:26Z] [CRITICAL] [ldap-sync] Database connection pool exhausted",
+      "[2024-01-15T10:28:41Z] [ERROR] [waf] JSON parse error: unexpected token at position 0",
+      "[2024-01-15T10:39:06Z] [INFO] [waf] Health check failed, marking unhealthy"
+    ],
+    "traces": [
+      "[155d] waf → waf: 322ms (TIMEOUT)",
+      "[14e0] waf → waf: 355ms (OK)",
+      "[15ed] waf → database: 199ms (SLOW)",
+      "[1f30] oauth-provider → waf: 2337ms (OK)"
+    ],
+    "available_actions": [
+      "rollback",
+      "restart",
+      "clear-cache",
+      "disable-flag"
+    ],
+    "correct_action": "clear-cache",
+    "short_summary": "Alert triggered for p95_latency exceeding threshold.",
+    "severity_rank": 3,
+    "actions": [
+      {
+        "name": "rollback",
+        "note": "Revert to last known good deployment"
+      },
+      {
+        "name": "restart",
+        "note": "Restart affected pods/services"
+      },
+      {
+        "name": "clear-cache",
+        "note": "Flush cached data that may be stale"
+      },
+      {
+        "name": "disable-flag",
+        "note": "Turn off the feature flag causing issues"
+      }
+    ],
+    "optimal_resolution_steps": [
+      "Inspect the incident to gather clues",
+      "Apply clear-cache to address root cause",
+      "Monitor metrics for improvement"
     ]
   }
 ]

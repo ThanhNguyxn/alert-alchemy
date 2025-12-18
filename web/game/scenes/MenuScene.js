@@ -86,8 +86,82 @@ class MenuScene extends Phaser.Scene {
                 window.open('https://buymeacoffee.com/thanhnguyxn', '_blank');
             });
 
+        // Settings row
+        this.createDifficultySelector(width / 2 - 150, height - 160);
+        this.createIncidentCountSelector(width / 2 + 150, height - 160);
+
         // Floating particles
         this.createParticles();
+    }
+
+    createDifficultySelector(x, y) {
+        this.add.text(x, y - 25, 'Difficulty', {
+            fontSize: '14px',
+            fontFamily: 'system-ui, Segoe UI, sans-serif',
+            color: '#a0a0a0'
+        }).setOrigin(0.5);
+
+        const difficulties = ['easy', 'normal', 'hard'];
+        const current = gameState.difficulty || 'normal';
+
+        difficulties.forEach((diff, i) => {
+            const bx = x - 80 + i * 80;
+            const isActive = diff === current;
+            const settings = DIFFICULTY_SETTINGS[diff];
+
+            const bg = this.add.graphics();
+            bg.fillStyle(isActive ? COLORS.accent : 0x2a2a4a, 1);
+            bg.fillRoundedRect(bx - 35, y, 70, 30, 6);
+
+            const label = this.add.text(bx, y + 15, settings.label, {
+                fontSize: '13px',
+                fontFamily: 'system-ui, Segoe UI, sans-serif',
+                color: isActive ? '#000' : '#e8e8e8'
+            }).setOrigin(0.5);
+
+            this.add.rectangle(bx, y + 15, 70, 30)
+                .setInteractive({ useHandCursor: true })
+                .on('pointerdown', () => {
+                    soundManager.play('click');
+                    gameState.setDifficulty(diff);
+                    this.scene.restart();
+                });
+        });
+    }
+
+    createIncidentCountSelector(x, y) {
+        this.add.text(x, y - 25, 'Incidents', {
+            fontSize: '14px',
+            fontFamily: 'system-ui, Segoe UI, sans-serif',
+            color: '#a0a0a0'
+        }).setOrigin(0.5);
+
+        const counts = [3, 5, 8];
+        const current = gameState.incidentCount || 5;
+
+        counts.forEach((count, i) => {
+            const bx = x - 80 + i * 80;
+            const isActive = count === current;
+
+            const bg = this.add.graphics();
+            bg.fillStyle(isActive ? COLORS.accent : 0x2a2a4a, 1);
+            bg.fillRoundedRect(bx - 35, y, 70, 30, 6);
+
+            const label = this.add.text(bx, y + 15, count.toString(), {
+                fontSize: '14px',
+                fontFamily: 'system-ui, Segoe UI, sans-serif',
+                fontStyle: 'bold',
+                color: isActive ? '#000' : '#e8e8e8'
+            }).setOrigin(0.5);
+
+            this.add.rectangle(bx, y + 15, 70, 30)
+                .setInteractive({ useHandCursor: true })
+                .on('pointerdown', () => {
+                    soundManager.play('click');
+                    gameState.setIncidentCount(count);
+                    this.scene.restart();
+                });
+        });
     }
 
     drawGrid() {

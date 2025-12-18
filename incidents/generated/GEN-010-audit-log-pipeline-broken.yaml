@@ -1,0 +1,53 @@
+id: "GEN-010"
+title: "Audit Log Pipeline Broken"
+severity: "low"
+category: "security"
+description: |
+  Alert triggered for p95_latency exceeding threshold. The ldap-sync is showing signs of degradation. Customer impact is currently moderate.
+tags:
+  - "security"
+  - "low"
+services:
+  - "ldap-sync"
+  - "waf"
+  - "oauth-provider"
+metrics:
+  error_rate: 9
+  p95_latency: 629
+  cpu_usage: 74
+  memory_usage: 72
+  request_rate: 4764
+logs:
+  - "[2024-01-15T10:39:35Z] [WARN] [waf] Request rate 1500/s approaching limit 2000/s"
+  - "[2024-01-15T10:24:22Z] [INFO] [ldap-sync] Circuit breaker OPEN for dependency waf"
+  - "[2024-01-15T10:07:03Z] [ERROR] [ldap-sync] SSL handshake failed: certificate expired"
+  - "[2024-01-15T10:30:24Z] [ERROR] [ldap-sync] OOM: container killed by kernel"
+  - "[2024-01-15T10:55:42Z] [INFO] [oauth-provider] Circuit breaker OPEN for dependency waf"
+  - "[2024-01-15T10:05:22Z] [ERROR] [oauth-provider] OOM: container killed by kernel"
+  - "[2024-01-15T10:26:26Z] [CRITICAL] [ldap-sync] Database connection pool exhausted"
+  - "[2024-01-15T10:28:41Z] [ERROR] [waf] JSON parse error: unexpected token at position 0"
+  - "[2024-01-15T10:39:06Z] [INFO] [waf] Health check failed, marking unhealthy"
+traces:
+  - "[155d] waf → waf: 322ms (TIMEOUT)"
+  - "[14e0] waf → waf: 355ms (OK)"
+  - "[15ed] waf → database: 199ms (SLOW)"
+  - "[1f30] oauth-provider → waf: 2337ms (OK)"
+actions:
+  - name: "rollback"
+    note: "Revert to last known good deployment"
+  - name: "restart"
+    note: "Restart affected pods/services"
+  - name: "clear-cache"
+    note: "Flush cached data that may be stale"
+  - name: "disable-flag"
+    note: "Turn off the feature flag causing issues"
+available_actions:
+  - "rollback"
+  - "restart"
+  - "clear-cache"
+  - "disable-flag"
+correct_action: "clear-cache"
+optimal_resolution_steps:
+  - "Inspect the incident to gather clues"
+  - "Apply clear-cache to address root cause"
+  - "Monitor metrics for improvement"

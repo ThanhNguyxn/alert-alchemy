@@ -1,0 +1,52 @@
+id: "GEN-006"
+title: "Webhook Delivery Failures"
+severity: "high"
+category: "web-api"
+description: |
+  Production issue affecting core functionality. Multiple services reporting connectivity problems to payment-api. Blast radius is expanding.
+tags:
+  - "web-api"
+  - "high"
+services:
+  - "user-service"
+  - "payment-api"
+  - "auth-service"
+metrics:
+  error_rate: 26
+  p95_latency: 2078
+  cpu_usage: 73
+  memory_usage: 84
+  request_rate: 1981
+logs:
+  - "[2024-01-15T10:06:45Z] [ERROR] [user-service] Authentication failed: token expired"
+  - "[2024-01-15T10:44:22Z] [ERROR] [auth-service] Timeout waiting for upstream response"
+  - "[2024-01-15T10:07:52Z] [ERROR] [auth-service] OOM: container killed by kernel"
+  - "[2024-01-15T10:59:02Z] [ERROR] [user-service] Connection refused: max retries exceeded"
+  - "[2024-01-15T10:23:15Z] [ERROR] [auth-service] JSON parse error: unexpected token at position 0"
+  - "[2024-01-15T10:27:13Z] [ERROR] [payment-api] Connection refused: max retries exceeded"
+  - "[2024-01-15T10:21:19Z] [ERROR] [payment-api] OOM: container killed by kernel"
+  - "[2024-01-15T10:33:26Z] [ERROR] [payment-api] Timeout waiting for upstream response"
+  - "[2024-01-15T10:26:06Z] [ERROR] [payment-api] SSL handshake failed: certificate expired"
+traces:
+  - "[1757] user-service → database: 1477ms (SLOW)"
+  - "[0741] auth-service → cache: 2057ms (MISS)"
+  - "[1b14] auth-service → payment-api: 2105ms (OK)"
+actions:
+  - name: "rollback"
+    note: "Revert to last known good deployment"
+  - name: "disable-flag"
+    note: "Turn off the feature flag causing issues"
+  - name: "restart"
+    note: "Restart affected pods/services"
+  - name: "clear-cache"
+    note: "Flush cached data that may be stale"
+available_actions:
+  - "rollback"
+  - "disable-flag"
+  - "restart"
+  - "clear-cache"
+correct_action: "clear-cache"
+optimal_resolution_steps:
+  - "Inspect the incident to gather clues"
+  - "Apply clear-cache to address root cause"
+  - "Monitor metrics for improvement"

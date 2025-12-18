@@ -29,6 +29,9 @@ jobs:
       - name: Install dependencies
         run: pip install pyyaml
 
+      - name: Generate incident pack
+        run: python scripts/generate_incident_pack.py --seed ${{ github.run_id }} --count 30
+
       - name: Export incidents to JSON
         run: python scripts/export_web_data.py
 
