@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 permissions:
   contents: write
@@ -39,56 +40,79 @@ jobs:
         run: |
           python -m pip install --upgrade pip
           pip install -e ".[dev]"
-          pip install pyinstaller
+          pip install pyinstaller pyyaml
+
+      - name: Install GUI dependencies (Windows only)
+        if: runner.os == 'Windows'
+        run: pip install pywebview
 
       - name: Run tests
         run: pytest tests/ -v --tb=short
 
-      - name: Build with PyInstaller
+      - name: Generate incidents data
+        run: python scripts/export_web_data.py
+
+      - name: Build CLI with PyInstaller
         run: pyinstaller build/alert-alchemy.spec --clean --noconfirm
+
+      - name: Build GUI with PyInstaller (Windows only)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          pyinstaller --name alert-alchemy-gui `
+            --onefile `
+            --windowed `
+            --add-data "web;web" `
+            --add-data "incidents;incidents" `
+            --hidden-import webview `
+            --hidden-import clr `
+            src/alert_alchemy/gui_launcher.py
 
       - name: Create RUN.txt
         shell: bash
         run: |
-          cat > dist/RUN.txt << 'EOF'
-          ═══════════════════════════════════════════════════════
-            🧪 Alert Alchemy - Quick Start Guide
-          ═══════════════════════════════════════════════════════
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            cat > dist/RUN.txt << 'EOF'
+          ════════════════════════════════════════════════
+            🧪 ALERT ALCHEMY - Quick Start Guide
+          ════════════════════════════════════════════════
 
-          HOW TO PLAY:
-          1. Extract all files from this zip to a folder
-          2. Double-click PLAY.bat (Windows) or run ./alert-alchemy (Mac/Linux)
-          3. Enjoy the game!
+          ▶ RECOMMENDED: Double-click alert-alchemy-gui.exe
+            Opens the game in a window (like the web version)
 
-          The interactive menu will guide you through everything.
+          🖥 TERMINAL MODE: Run alert-alchemy.exe
+            Opens interactive CLI mode
 
-          ───────────────────────────────────────────────────────
-          ALTERNATIVE: Run from command line:
-            alert-alchemy --help     (see all commands)
-            alert-alchemy start      (start new game)
-            alert-alchemy play       (interactive mode)
+          💡 Or play in browser (no install):
+            https://thanhnguyxn.github.io/alert-alchemy/
           EOF
+          else
+            cat > dist/RUN.txt << 'EOF'
+          ════════════════════════════════════════════════
+            🧪 ALERT ALCHEMY - Quick Start Guide
+          ════════════════════════════════════════════════
+
+          ▶ RUN: ./alert-alchemy
+            Opens interactive CLI mode
+
+          💡 Or play in browser (no install):
+            https://thanhnguyxn.github.io/alert-alchemy/
+          EOF
+          fi
 
       - name: Copy incidents folder to dist
         shell: bash
         run: cp -r incidents dist/
 
-      - name: Create PLAY.bat for Windows
+      - name: Copy GUI exe to dist (Windows only)
         if: runner.os == 'Windows'
-        shell: pwsh
+        shell: bash
         run: |
-          @"
-          @echo off
-          REM Alert Alchemy - One-Click Play
-          cd /d "%~dp0"
-          if not exist "alert-alchemy.exe" (
-              echo ERROR: alert-alchemy.exe not found!
-              pause
-              exit /b 1
-          )
-          alert-alchemy.exe play
-          pause
-          "@ | Out-File -FilePath dist/PLAY.bat -Encoding ASCII
+          if [ -f "dist/alert-alchemy-gui.exe" ]; then
+            echo "GUI exe already in dist/"
+          elif [ -f "dist/alert-alchemy-gui/alert-alchemy-gui.exe" ]; then
+            cp dist/alert-alchemy-gui/alert-alchemy-gui.exe dist/
+          fi
 
       - name: Create artifact archive (Unix)
         if: runner.os != 'Windows'
@@ -100,7 +124,7 @@ jobs:
         if: runner.os == 'Windows'
         shell: pwsh
         run: |
-          Compress-Archive -Path dist/* -DestinationPath ${{ matrix.artifact_name }}.zip
+          Compress-Archive -Path dist/alert-alchemy.exe, dist/alert-alchemy-gui.exe, dist/RUN.txt, dist/incidents -DestinationPath ${{ matrix.artifact_name }}.zip
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4

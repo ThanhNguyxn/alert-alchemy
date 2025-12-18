@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "alert-alchemy"
-version = "0.1.2"
+version = "0.2.0"
 description = "A terminal/CLI incident-response simulator game where you 'brew' fixes from noisy alerts"
 readme = "README.md"
 license = {text = "MIT"}
@@ -38,10 +38,14 @@ dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
 ]
+gui = [
+    "pywebview>=4.0.0",
+]
 
 [project.scripts]
 alert-alchemy = "alert_alchemy.cli:app"
 aa = "alert_alchemy.cli:app"
+alert-alchemy-gui = "alert_alchemy.gui_launcher:main"
 
 [project.urls]
 Homepage = "https://github.com/ThanhNguyxn/alert-alchemy"
