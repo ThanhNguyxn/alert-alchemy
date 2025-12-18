@@ -16,6 +16,7 @@
 
 <p align="center">
   <a href="https://thanhnguyxn.github.io/alert-alchemy/"><img src="https://img.shields.io/badge/▶%20Play%20in%20Browser-GitHub%20Pages-06b6d4?style=for-the-badge&logo=github" alt="Play in Browser" /></a>
+  <a href="https://buymeacoffee.com/thanhnguyxn"><img src="https://img.shields.io/badge/☕%20Buy%20Me%20a%20Coffee-FFDD00?style=for-the-badge&logo=buy-me-a-coffee&logoColor=black" alt="Buy Me a Coffee" /></a>
 </p>
 
 <p align="center">
