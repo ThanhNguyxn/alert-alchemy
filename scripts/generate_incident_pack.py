@@ -327,7 +327,7 @@ def main():
         
         write_yaml(incident, filepath)
     
-    print(f"✓ Generated {args.count} incidents to {output_dir}")
+    print(f"[OK] Generated {args.count} incidents to {output_dir}")
     return 0
 
 

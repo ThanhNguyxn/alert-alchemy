@@ -161,7 +161,7 @@ def main():
     with open(output_file, "w", encoding="utf-8") as f:
         json.dump(incidents, f, indent=2, ensure_ascii=False)
     
-    print(f"✓ Exported {len(incidents)} incidents to {output_file}")
+    print(f"[OK] Exported {len(incidents)} incidents to {output_file}")
     return 0
 
 
