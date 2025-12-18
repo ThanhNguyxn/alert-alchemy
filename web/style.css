@@ -1,0 +1,603 @@
+/* ═══════════════════════════════════════════════════════════════
+   Alert Alchemy - Web Game Styles
+   Dark theme, game-like UI
+   ═══════════════════════════════════════════════════════════════ */
+
+:root {
+    --bg-primary: #0f0f1a;
+    --bg-secondary: #1a1a2e;
+    --bg-card: #16213e;
+    --bg-hover: #1f3460;
+    --text-primary: #e8e8e8;
+    --text-secondary: #a0a0a0;
+    --text-muted: #666;
+    --accent-primary: #06b6d4;
+    --accent-secondary: #8b5cf6;
+    --accent-success: #10b981;
+    --accent-warning: #f59e0b;
+    --accent-danger: #ef4444;
+    --border-color: #2a2a4a;
+    --shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+    --radius: 12px;
+    --radius-sm: 8px;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    min-height: 100vh;
+    line-height: 1.6;
+}
+
+/* ─── Screens ─────────────────────────────────────────────────── */
+.screen {
+    display: none;
+    min-height: 100vh;
+}
+.screen.active {
+    display: flex;
+    flex-direction: column;
+}
+.screen.hidden {
+    display: none;
+}
+
+/* ─── Landing Screen ──────────────────────────────────────────── */
+#landing {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    padding: 2rem;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+
+.hero h1 {
+    font-size: 3.5rem;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.tagline {
+    font-size: 1.25rem;
+    color: var(--text-secondary);
+    margin-bottom: 2rem;
+}
+
+.features {
+    display: flex;
+    gap: 2rem;
+    margin-top: 3rem;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.feature {
+    background: var(--bg-card);
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius);
+    border: 1px solid var(--border-color);
+}
+
+/* ─── Buttons ─────────────────────────────────────────────────── */
+button {
+    cursor: pointer;
+    font-family: inherit;
+    font-size: 1rem;
+    border: none;
+    border-radius: var(--radius-sm);
+    padding: 0.75rem 1.5rem;
+    transition: all 0.2s ease;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    color: white;
+}
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(6, 182, 212, 0.3);
+}
+
+.btn-secondary {
+    background: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+}
+.btn-secondary:hover {
+    background: var(--bg-hover);
+}
+
+.btn-danger {
+    background: var(--accent-danger);
+    color: white;
+}
+.btn-danger:hover {
+    background: #dc2626;
+}
+
+.btn-large {
+    font-size: 1.25rem;
+    padding: 1rem 2.5rem;
+}
+
+.btn-small {
+    font-size: 0.875rem;
+    padding: 0.5rem 1rem;
+}
+
+.btn-icon {
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 0.5rem;
+    font-size: 1.5rem;
+    line-height: 1;
+}
+.btn-icon:hover {
+    color: var(--text-primary);
+}
+
+/* ─── Overlay ─────────────────────────────────────────────────── */
+.overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+    backdrop-filter: blur(4px);
+}
+.overlay.hidden {
+    display: none;
+}
+
+.overlay-content {
+    background: var(--bg-secondary);
+    padding: 2rem;
+    border-radius: var(--radius);
+    max-width: 500px;
+    width: 90%;
+    position: relative;
+    border: 1px solid var(--border-color);
+}
+
+.overlay-close {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: transparent;
+    color: var(--text-secondary);
+    font-size: 1.5rem;
+    padding: 0.25rem 0.5rem;
+}
+
+.overlay-content h2 {
+    margin-bottom: 1rem;
+    color: var(--accent-primary);
+}
+
+.overlay-content ol, .overlay-content ul {
+    margin-left: 1.5rem;
+    margin-bottom: 1rem;
+}
+
+.overlay-content li {
+    margin-bottom: 0.5rem;
+}
+
+/* ─── Game Header ─────────────────────────────────────────────── */
+.game-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-color);
+}
+
+.header-left .logo {
+    font-size: 1.25rem;
+    font-weight: bold;
+}
+
+.header-stats {
+    display: flex;
+    gap: 2rem;
+}
+
+.stat {
+    text-align: center;
+}
+
+.stat-label {
+    display: block;
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.stat-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-primary);
+}
+
+/* ─── Game Main ───────────────────────────────────────────────── */
+.game-main {
+    display: flex;
+    flex: 1;
+    gap: 1rem;
+    padding: 1rem;
+    overflow: hidden;
+}
+
+/* ─── Incidents Panel ─────────────────────────────────────────── */
+.incidents-panel {
+    width: 400px;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.incidents-panel h2 {
+    margin-bottom: 1rem;
+    font-size: 1.25rem;
+}
+
+.incidents-list {
+    flex: 1;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+}
+
+.panel-actions {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border-color);
+}
+
+/* ─── Incident Card ───────────────────────────────────────────── */
+.incident-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: 1rem;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.incident-card:hover {
+    border-color: var(--accent-primary);
+    transform: translateX(4px);
+}
+
+.incident-card.selected {
+    border-color: var(--accent-secondary);
+    background: var(--bg-hover);
+}
+
+.incident-card.resolved {
+    opacity: 0.5;
+    border-color: var(--accent-success);
+}
+
+.incident-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 0.5rem;
+}
+
+.incident-id {
+    font-weight: bold;
+    color: var(--accent-primary);
+}
+
+.severity-badge {
+    font-size: 0.75rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    text-transform: uppercase;
+    font-weight: bold;
+}
+
+.severity-critical { background: var(--accent-danger); color: white; }
+.severity-high { background: var(--accent-warning); color: black; }
+.severity-medium { background: var(--accent-primary); color: black; }
+.severity-low { background: var(--accent-success); color: black; }
+
+.incident-title {
+    font-size: 0.9rem;
+    margin-bottom: 0.5rem;
+}
+
+.blast-radius {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+.blast-bar {
+    flex: 1;
+    height: 6px;
+    background: var(--bg-primary);
+    border-radius: 3px;
+    overflow: hidden;
+}
+
+.blast-fill {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.3s ease;
+}
+
+.blast-low { background: var(--accent-success); }
+.blast-medium { background: var(--accent-warning); }
+.blast-high { background: var(--accent-danger); }
+
+/* ─── Detail Panel ────────────────────────────────────────────── */
+.detail-panel {
+    flex: 1;
+    background: var(--bg-secondary);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.detail-panel.hidden {
+    display: none;
+}
+
+.detail-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+}
+
+.detail-header h2 {
+    font-size: 1.25rem;
+}
+
+/* ─── Tabs ────────────────────────────────────────────────────── */
+.tabs {
+    display: flex;
+    gap: 0.5rem;
+    margin-bottom: 1rem;
+    border-bottom: 1px solid var(--border-color);
+    padding-bottom: 0.5rem;
+}
+
+.tab {
+    background: transparent;
+    color: var(--text-secondary);
+    padding: 0.5rem 1rem;
+    border-radius: var(--radius-sm);
+}
+
+.tab:hover {
+    color: var(--text-primary);
+}
+
+.tab.active {
+    background: var(--bg-card);
+    color: var(--accent-primary);
+}
+
+.tab-content {
+    flex: 1;
+    overflow-y: auto;
+    margin-bottom: 1rem;
+}
+
+.tab-pane {
+    display: none;
+}
+
+.tab-pane.active {
+    display: block;
+}
+
+.tab-pane pre {
+    background: var(--bg-primary);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    overflow-x: auto;
+    font-size: 0.85rem;
+    line-height: 1.8;
+}
+
+/* ─── Metrics Display ─────────────────────────────────────────── */
+.metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+}
+
+.metric-card {
+    background: var(--bg-card);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    text-align: center;
+}
+
+.metric-value {
+    font-size: 1.5rem;
+    font-weight: bold;
+    color: var(--accent-primary);
+}
+
+.metric-label {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+}
+
+/* ─── Action Area ─────────────────────────────────────────────── */
+.action-area {
+    background: var(--bg-card);
+    padding: 1rem;
+    border-radius: var(--radius-sm);
+    border: 1px solid var(--border-color);
+}
+
+.action-area h3 {
+    margin-bottom: 0.75rem;
+    font-size: 1rem;
+}
+
+.suggested-action {
+    background: var(--bg-primary);
+    padding: 0.75rem;
+    border-radius: var(--radius-sm);
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+.action-controls {
+    display: flex;
+    gap: 0.75rem;
+}
+
+.action-select {
+    flex: 1;
+    padding: 0.75rem;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-sm);
+    font-size: 1rem;
+}
+
+.action-select:focus {
+    outline: none;
+    border-color: var(--accent-primary);
+}
+
+/* ─── Game End Screen ─────────────────────────────────────────── */
+#game-end {
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    background: linear-gradient(135deg, var(--bg-primary) 0%, var(--bg-secondary) 100%);
+}
+
+.end-content h1 {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+}
+
+.final-score {
+    font-size: 5rem;
+    font-weight: bold;
+    background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+}
+
+.score-breakdown {
+    background: var(--bg-card);
+    padding: 1.5rem;
+    border-radius: var(--radius);
+    margin-bottom: 2rem;
+    text-align: left;
+    display: inline-block;
+}
+
+.score-breakdown div {
+    display: flex;
+    justify-content: space-between;
+    gap: 2rem;
+    padding: 0.25rem 0;
+}
+
+.end-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+}
+
+/* ─── Toast ───────────────────────────────────────────────────── */
+.toast {
+    position: fixed;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    padding: 1rem 2rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    z-index: 200;
+    animation: slideUp 0.3s ease;
+}
+
+.toast.hidden {
+    display: none;
+}
+
+.toast.success {
+    border-color: var(--accent-success);
+}
+
+.toast.error {
+    border-color: var(--accent-danger);
+}
+
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* ─── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 768px) {
+    .game-main {
+        flex-direction: column;
+    }
+    
+    .incidents-panel {
+        width: 100%;
+        max-height: 40vh;
+    }
+    
+    .header-stats {
+        gap: 1rem;
+    }
+    
+    .stat-value {
+        font-size: 1.25rem;
+    }
+    
+    .hero h1 {
+        font-size: 2.5rem;
+    }
+}

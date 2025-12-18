@@ -1,0 +1,243 @@
+[
+  {
+    "id": "INC-002",
+    "title": "Database Connection Pool Exhaustion",
+    "severity": "critical",
+    "description": "The order-service is unable to acquire database connections.\nConnection pool (max 50) is fully exhausted. New requests are timing out\nwaiting for connections. Checkout flow is completely broken.\nRevenue impact estimated at $5k/minute. Paged at 14:22 UTC during peak traffic.\n",
+    "services": [
+      "order-service",
+      "postgres-primary",
+      "payment-gateway"
+    ],
+    "metrics": {
+      "error_rate": 45.0,
+      "p95_latency": 8500,
+      "cpu_usage": 25.0,
+      "memory_usage": 60.0,
+      "request_count": 8000
+    },
+    "logs": [
+      "[14:22:01] ERROR order-service Connection pool exhausted (50/50 in use)",
+      "[14:22:03] ERROR order-service Timeout waiting for connection (30000ms)",
+      "[14:22:05] WARN  postgres-primary Active connections: 312 (limit 500)",
+      "[14:22:10] ERROR payment-gateway Upstream order-service timeout",
+      "[14:22:15] INFO  order-service Slow query detected: getOrderHistory (avg 4500ms)",
+      "[14:22:30] WARN  order-service 127 requests queued waiting for DB connection"
+    ],
+    "traces": [
+      "trace-x1y2z3: POST /api/checkout -> order-service -> postgres (connection wait 28s)",
+      "trace-a9b8c7: GET /api/orders/history -> order-service (query time 4.2s per call)",
+      "trace-m3n4o5: Connection leak detected - transaction not closed in OrderHistoryDAO"
+    ],
+    "available_actions": [
+      "rollback",
+      "scale",
+      "restart",
+      "disable-flag",
+      "increase-pool",
+      "enable-cache"
+    ],
+    "correct_action": "increase-pool",
+    "resolution": {
+      "optimal_path": [
+        "increase-pool"
+      ],
+      "alternate_path": [
+        "disable-flag",
+        "enable-cache"
+      ],
+      "explanation": "The root cause was a slow query in OrderHistoryDAO that held connections\nfor 4+ seconds combined with a connection leak when exceptions occurred.\nIncreasing pool size provides immediate relief. Long-term fix requires\nquery optimization and fixing the leak. Disabling the order-history\nfeature flag is a valid alternative that stops the problematic code path.\n",
+      "post_mortem_link": "https://example.com/postmortems/INC-002"
+    },
+    "timeline": [
+      {
+        "step": 0,
+        "event": "Alert fired: order-service DB connections exhausted"
+      },
+      {
+        "step": 1,
+        "action": "restart",
+        "outcome": "Connections freed briefly, but exhaust again within 2 minutes.",
+        "trade_off": "Causes request failures during restart. Not a fix."
+      },
+      {
+        "step": 2,
+        "action": "scale",
+        "outcome": "More pods = more connections needed. Makes problem worse.",
+        "trade_off": "Each pod needs its own pool. Accelerates exhaustion.",
+        "worsens": true
+      },
+      {
+        "step": 3,
+        "action": "increase-pool",
+        "outcome": "Pool increased to 100. Connections available, latency drops.",
+        "trade_off": "Higher DB load. Need to investigate root cause after.",
+        "resolved": true
+      },
+      {
+        "step": 4,
+        "action": "disable-flag",
+        "outcome": "If order-history feature disabled, slow query stops.",
+        "trade_off": "Users can't see order history but checkout works.",
+        "resolved": true
+      },
+      {
+        "step": 5,
+        "action": "enable-cache",
+        "outcome": "Cache reduces DB calls, frees connections over time.",
+        "trade_off": "Takes 5-10 minutes to warm. Not immediate relief."
+      }
+    ]
+  },
+  {
+    "id": "INC-001",
+    "title": "Memory Leak in User Service",
+    "severity": "high",
+    "description": "The user-service pods are experiencing OOMKilled restarts every 2-3 hours.\nMemory usage climbs linearly from startup until the 4GB limit is hit.\nCustomer-facing latency is spiking during restarts. On-call was paged at 03:14 UTC.\n",
+    "services": [
+      "user-service",
+      "api-gateway"
+    ],
+    "metrics": {
+      "error_rate": 12.5,
+      "p95_latency": 2800,
+      "cpu_usage": 45.0,
+      "memory_usage": 98.0,
+      "request_count": 15000
+    },
+    "logs": [
+      "[03:14:02] WARN  user-service-7b4f8d Pod memory at 3.8GB/4GB",
+      "[03:14:15] ERROR user-service-7b4f8d OOMKilled - restarting container",
+      "[03:14:18] INFO  user-service-7b4f8d Pod starting (restart count: 5)",
+      "[03:15:01] WARN  api-gateway upstream user-service unhealthy",
+      "[03:15:22] INFO  user-service-7b4f8d Pod ready, accepting traffic",
+      "[03:42:00] WARN  user-service-7b4f8d Memory at 2.1GB and climbing"
+    ],
+    "traces": [
+      "trace-a1b2c3: GET /api/users/profile -> user-service (timeout after 5000ms)",
+      "trace-d4e5f6: POST /api/users/settings -> user-service (503 upstream error)",
+      "trace-g7h8i9: Heap dump shows 1.2GB retained by SessionCache"
+    ],
+    "available_actions": [
+      "rollback",
+      "scale",
+      "restart",
+      "disable-flag",
+      "increase-pool",
+      "enable-cache"
+    ],
+    "correct_action": "rollback",
+    "resolution": {
+      "optimal_path": [
+        "rollback"
+      ],
+      "explanation": "The memory leak was introduced in v2.3.1 with a change to the session cache\nthat prevented proper cleanup of expired sessions. Rolling back to v2.3.0\nimmediately stabilizes memory. A hotfix should be prepared before re-deploying.\n",
+      "post_mortem_link": "https://example.com/postmortems/INC-001"
+    },
+    "timeline": [
+      {
+        "step": 0,
+        "event": "Alert fired: user-service memory critical"
+      },
+      {
+        "step": 1,
+        "action": "restart",
+        "outcome": "Pods restart but memory leak continues. Buys ~2 hours.",
+        "trade_off": "Quick fix but doesn't address root cause."
+      },
+      {
+        "step": 2,
+        "action": "scale",
+        "outcome": "More pods share load, but all eventually OOM. Delays issue.",
+        "trade_off": "Increases cost, masks problem temporarily."
+      },
+      {
+        "step": 3,
+        "action": "rollback",
+        "outcome": "Previous version stable. Memory stays flat at 800MB.",
+        "trade_off": "Loses new features from v2.3.1 until hotfix ready.",
+        "resolved": true
+      }
+    ]
+  },
+  {
+    "id": "INC-003",
+    "title": "Feature Flag Misconfiguration Causing 500 Errors",
+    "severity": "high",
+    "description": "After a feature flag change at 09:45 UTC, the recommendation-service\nis throwing NullPointerException on 30% of requests. The new \"ml-v2-recs\"\nflag was enabled but the ML model endpoint wasn't configured for production.\nProduct pages are partially broken - recommendations section shows errors.\n",
+    "services": [
+      "recommendation-service",
+      "product-catalog",
+      "ml-inference"
+    ],
+    "metrics": {
+      "error_rate": 30.0,
+      "p95_latency": 1200,
+      "cpu_usage": 35.0,
+      "memory_usage": 55.0,
+      "request_count": 25000
+    },
+    "logs": [
+      "[09:45:12] INFO  feature-flags Flag 'ml-v2-recs' enabled for 100% traffic",
+      "[09:45:15] ERROR recommendation-service NullPointerException at MLClient.java:47",
+      "[09:45:15] ERROR recommendation-service ML endpoint not configured: ML_V2_ENDPOINT",
+      "[09:45:20] WARN  product-catalog Recommendations unavailable, showing fallback",
+      "[09:46:00] ERROR recommendation-service 7,500 errors in last 60 seconds",
+      "[09:46:30] INFO  recommendation-service Fallback to legacy recs for affected users"
+    ],
+    "traces": [
+      "trace-p1q2r3: GET /products/12345 -> product-catalog -> recommendation-service (500)",
+      "trace-s4t5u6: MLClient.getRecommendations() -> null endpoint -> NPE",
+      "trace-v7w8x9: Legacy fallback path working for 70% of requests"
+    ],
+    "available_actions": [
+      "rollback",
+      "scale",
+      "restart",
+      "disable-flag",
+      "increase-pool",
+      "enable-cache"
+    ],
+    "correct_action": "disable-flag",
+    "resolution": {
+      "optimal_path": [
+        "disable-flag"
+      ],
+      "explanation": "The feature flag \"ml-v2-recs\" was enabled without the corresponding\nML_V2_ENDPOINT environment variable being set in production. The fastest\nfix is to disable the flag while ops adds the missing config. After config\nis deployed, flag can be re-enabled with a gradual rollout (1%, 10%, 50%, 100%).\n",
+      "post_mortem_link": "https://example.com/postmortems/INC-003"
+    },
+    "timeline": [
+      {
+        "step": 0,
+        "event": "Alert fired: recommendation-service error rate > 25%"
+      },
+      {
+        "step": 1,
+        "action": "disable-flag",
+        "outcome": "Flag disabled. Error rate drops to 0.1% immediately.",
+        "trade_off": "ML v2 recommendations unavailable. Using legacy algorithm.",
+        "resolved": true
+      },
+      {
+        "step": 2,
+        "action": "restart",
+        "outcome": "Services restart but config still missing. Errors continue.",
+        "trade_off": "Brief downtime for no benefit."
+      },
+      {
+        "step": 3,
+        "action": "rollback",
+        "outcome": "Full rollback would work but affects other recent changes.",
+        "trade_off": "Overkill - flag toggle is simpler and faster.",
+        "resolved": true
+      },
+      {
+        "step": 4,
+        "action": "scale",
+        "outcome": "More pods = more errors. Does not help.",
+        "trade_off": "Wastes resources, no improvement.",
+        "worsens": true
+      }
+    ]
+  }
+]

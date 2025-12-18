@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🧪 Alert Alchemy - Incident Response Simulator</title>
+    <link rel="stylesheet" href="./style.css">
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🧪</text></svg>">
+</head>
+<body>
+    <div id="app">
+        <!-- Landing Screen -->
+        <div id="landing" class="screen active">
+            <div class="hero">
+                <h1>🧪 Alert Alchemy</h1>
+                <p class="tagline">Practice incident response without the 3AM pages</p>
+                <button id="btn-start" class="btn-primary btn-large">▶ Play</button>
+                <button id="btn-how-to-play" class="btn-secondary">How to Play</button>
+            </div>
+            <div class="features">
+                <div class="feature">📊 Real metrics</div>
+                <div class="feature">📜 Logs & traces</div>
+                <div class="feature">🎯 Score your decisions</div>
+            </div>
+        </div>
+
+        <!-- How to Play Overlay -->
+        <div id="how-to-play-overlay" class="overlay hidden">
+            <div class="overlay-content">
+                <button class="overlay-close">&times;</button>
+                <h2>🎮 How to Play</h2>
+                <ol>
+                    <li><strong>View incidents</strong> - Check status, logs, metrics, traces</li>
+                    <li><strong>Analyze</strong> - Understand what's happening</li>
+                    <li><strong>Take action</strong> - Choose the best fix</li>
+                    <li><strong>Score</strong> - Faster + correct = higher score!</li>
+                </ol>
+                <h3>💡 Tips</h3>
+                <ul>
+                    <li>Viewing data is FREE - no time penalty</li>
+                    <li>Every action advances time (+1 step)</li>
+                    <li>Higher blast radius = more urgent!</li>
+                </ul>
+                <button id="btn-close-how-to" class="btn-primary">Got it!</button>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="game" class="screen hidden">
+            <!-- Top Bar -->
+            <header class="game-header">
+                <div class="header-left">
+                    <span class="logo">🧪 Alert Alchemy</span>
+                </div>
+                <div class="header-stats">
+                    <div class="stat">
+                        <span class="stat-label">Step</span>
+                        <span id="stat-step" class="stat-value">0</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Score</span>
+                        <span id="stat-score" class="stat-value">100</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-label">Resolved</span>
+                        <span id="stat-resolved" class="stat-value">0/0</span>
+                    </div>
+                </div>
+                <div class="header-right">
+                    <button id="btn-end-game" class="btn-danger btn-small">End Game</button>
+                </div>
+            </header>
+
+            <!-- Main Content -->
+            <main class="game-main">
+                <!-- Incidents List -->
+                <section class="incidents-panel">
+                    <h2>🔥 Incidents</h2>
+                    <div id="incidents-list" class="incidents-list">
+                        <!-- Populated by JS -->
+                    </div>
+                    <div class="panel-actions">
+                        <button id="btn-tick" class="btn-secondary btn-small">⏰ Tick (+1 step)</button>
+                    </div>
+                </section>
+
+                <!-- Incident Detail Panel -->
+                <section id="detail-panel" class="detail-panel hidden">
+                    <div class="detail-header">
+                        <h2 id="detail-title">Incident Details</h2>
+                        <button id="btn-close-detail" class="btn-icon">&times;</button>
+                    </div>
+                    
+                    <!-- Tabs -->
+                    <div class="tabs">
+                        <button class="tab active" data-tab="info">Info</button>
+                        <button class="tab" data-tab="logs">Logs</button>
+                        <button class="tab" data-tab="metrics">Metrics</button>
+                        <button class="tab" data-tab="traces">Traces</button>
+                    </div>
+
+                    <!-- Tab Content -->
+                    <div class="tab-content">
+                        <div id="tab-info" class="tab-pane active">
+                            <div id="detail-description"></div>
+                            <div id="detail-services"></div>
+                        </div>
+                        <div id="tab-logs" class="tab-pane hidden">
+                            <pre id="detail-logs"></pre>
+                        </div>
+                        <div id="tab-metrics" class="tab-pane hidden">
+                            <div id="detail-metrics"></div>
+                        </div>
+                        <div id="tab-traces" class="tab-pane hidden">
+                            <pre id="detail-traces"></pre>
+                        </div>
+                    </div>
+
+                    <!-- Action Area -->
+                    <div class="action-area">
+                        <h3>⚡ Take Action</h3>
+                        <div id="suggested-action" class="suggested-action"></div>
+                        <div class="action-controls">
+                            <select id="action-select" class="action-select">
+                                <option value="">Select an action...</option>
+                            </select>
+                            <button id="btn-take-action" class="btn-primary">Execute</button>
+                        </div>
+                    </div>
+                </section>
+            </main>
+        </div>
+
+        <!-- Game End Screen -->
+        <div id="game-end" class="screen hidden">
+            <div class="end-content">
+                <h1>🏁 Game Over!</h1>
+                <div id="final-score" class="final-score"></div>
+                <div id="score-breakdown" class="score-breakdown"></div>
+                <div class="end-actions">
+                    <button id="btn-share" class="btn-secondary">📋 Share Score</button>
+                    <button id="btn-play-again" class="btn-primary btn-large">Play Again</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Toast notifications -->
+        <div id="toast" class="toast hidden"></div>
+    </div>
+
+    <script src="./app.js"></script>
+</body>
+</html>

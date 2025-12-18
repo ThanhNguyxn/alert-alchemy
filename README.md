@@ -15,6 +15,10 @@
 </p>
 
 <p align="center">
+  <a href="https://thanhnguyxn.github.io/alert-alchemy/"><img src="https://img.shields.io/badge/▶%20Play%20in%20Browser-GitHub%20Pages-06b6d4?style=for-the-badge&logo=github" alt="Play in Browser" /></a>
+</p>
+
+<p align="center">
   <img src="assets/stickers/sticker_beaker.svg" width="48" alt="beaker" />
   <img src="assets/stickers/sticker_alert.svg" width="48" alt="alert" />
   <img src="assets/stickers/sticker_flame.svg" width="48" alt="flame" />
@@ -27,6 +31,7 @@
 
 - [✨ Why Alert Alchemy?](#-why-alert-alchemy)
 - [🧪 Features](#-features)
+- [🌐 Play in Browser](#-play-in-browser)
 - [📦 Download & Run (No Python Needed)](#-download--run-no-python-needed)
 - [🧰 Developer Install](#-developer-install)
 - [🎮 Gameplay Loop](#-gameplay-loop)
@@ -71,6 +76,18 @@ Alert Alchemy is a **terminal-based simulator** that drops you into realistic on
 | ✅ **Multiple resolution paths** | Not always one right answer — trade-offs matter |
 | 🔌 **Offline friendly** | No internet required, no containers, just Python |
 | 📝 **Extensible incidents** | Write your own YAML scenarios |
+
+---
+
+## 🌐 Play in Browser
+
+**No installation required!** Play directly in your browser:
+
+👉 **[https://thanhnguyxn.github.io/alert-alchemy/](https://thanhnguyxn.github.io/alert-alchemy/)**
+
+- ✅ Zero backend — runs entirely in your browser  
+- ✅ Works offline after first load  
+- ✅ Progress saved in localStorage  
 
 ---
 
