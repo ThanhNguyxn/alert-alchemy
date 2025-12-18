@@ -5,7 +5,7 @@ class IncidentScene extends Phaser.Scene {
     constructor() {
         super({ key: 'IncidentScene' });
         this.incident = null;
-        this.activeTab = 'info';
+        this.activeTab = 'briefing';
     }
 
     init(data) {
@@ -28,10 +28,10 @@ class IncidentScene extends Phaser.Scene {
         overlay.setInteractive(new Phaser.Geom.Rectangle(0, 0, width, height), Phaser.Geom.Rectangle.Contains);
 
         // Main panel
-        this.panelX = 100;
-        this.panelY = 60;
-        this.panelWidth = width - 200;
-        this.panelHeight = height - 120;
+        this.panelX = 80;
+        this.panelY = 50;
+        this.panelWidth = width - 160;
+        this.panelHeight = height - 100;
 
         const panel = this.add.graphics();
         panel.fillStyle(COLORS.panel, 1);
@@ -42,6 +42,7 @@ class IncidentScene extends Phaser.Scene {
         // Close button
         const closeBtn = this.add.text(this.panelX + this.panelWidth - 40, this.panelY + 20, '✕', {
             fontSize: '28px',
+            fontFamily: 'system-ui, Segoe UI, sans-serif',
             color: '#a0a0a0'
         }).setInteractive({ useHandCursor: true });
         closeBtn.on('pointerdown', () => this.closeScene());
@@ -55,7 +56,7 @@ class IncidentScene extends Phaser.Scene {
         this.createTabs();
 
         // Tab content area
-        this.contentY = this.panelY + 160;
+        this.contentY = this.panelY + 170;
         this.showTabContent();
 
         // Action cards
@@ -67,7 +68,7 @@ class IncidentScene extends Phaser.Scene {
 
     createHeader() {
         const x = this.panelX + 30;
-        const y = this.panelY + 30;
+        const y = this.panelY + 25;
 
         // Severity badge
         const severity = this.incident.severity?.toLowerCase() || 'medium';
@@ -76,10 +77,11 @@ class IncidentScene extends Phaser.Scene {
 
         const badge = this.add.graphics();
         badge.fillStyle(color, 1);
-        badge.fillRoundedRect(x, y, 80, 26, 6);
+        badge.fillRoundedRect(x, y, 80, 28, 6);
 
-        this.add.text(x + 40, y + 13, severity.toUpperCase(), {
+        this.add.text(x + 40, y + 14, severity.toUpperCase(), {
             fontSize: '12px',
+            fontFamily: 'system-ui, Segoe UI, sans-serif',
             fontStyle: 'bold',
             color: ['low', 'medium'].includes(severity) ? '#000' : '#fff'
         }).setOrigin(0.5);
@@ -87,38 +89,43 @@ class IncidentScene extends Phaser.Scene {
         // ID and Title
         this.add.text(x + 100, y + 5, this.incident.id, {
             fontSize: '20px',
+            fontFamily: 'system-ui, Segoe UI, sans-serif',
             fontStyle: 'bold',
             color: '#06b6d4'
         });
 
         this.add.text(x, y + 45, this.incident.title || 'Incident', {
-            fontSize: '24px',
+            fontSize: '22px',
+            fontFamily: 'system-ui, Segoe UI, sans-serif',
             fontStyle: 'bold',
-            color: '#e8e8e8'
+            color: '#e8e8e8',
+            wordWrap: { width: 500 }
         });
 
-        // Blast radius
+        // Impact bar
         const blast = gameState.calculateBlastRadius(this.incident);
-        this.add.text(x + 500, y + 10, `Blast Radius: ${blast}`, {
-            fontSize: '16px',
+        this.add.text(x + 550, y + 10, `Impact: ${blast}/100`, {
+            fontSize: '15px',
+            fontFamily: 'system-ui, Segoe UI, sans-serif',
             color: '#a0a0a0'
         });
 
-        // Blast bar
-        const barWidth = 150;
+        // Impact bar visual
+        const barWidth = 160;
         const barBg = this.add.graphics();
         barBg.fillStyle(0x0a0a12, 1);
-        barBg.fillRoundedRect(x + 500, y + 35, barWidth, 12, 4);
+        barBg.fillRoundedRect(x + 550, y + 35, barWidth, 14, 5);
 
         const fillColor = blast >= 70 ? COLORS.danger : (blast >= 40 ? COLORS.warning : COLORS.success);
         const barFill = this.add.graphics();
         barFill.fillStyle(fillColor, 1);
-        barFill.fillRoundedRect(x + 500, y + 35, (blast / 100) * barWidth, 12, 4);
+        barFill.fillRoundedRect(x + 550, y + 35, (blast / 100) * barWidth, 14, 5);
 
         // Resolved badge
         if (this.incident.resolved) {
-            this.add.text(x + 700, y + 20, '✓ RESOLVED', {
+            this.add.text(x + 750, y + 20, '✓ RESOLVED', {
                 fontSize: '18px',
+                fontFamily: 'system-ui, Segoe UI, sans-serif',
                 fontStyle: 'bold',
                 color: '#10b981'
             });
@@ -126,34 +133,36 @@ class IncidentScene extends Phaser.Scene {
     }
 
     createTabs() {
+        // Renamed tabs: Briefing, Clues, Vitals, Timeline
         const tabs = [
-            { id: 'info', label: '📋 Info' },
-            { id: 'logs', label: '📜 Logs' },
-            { id: 'metrics', label: '📊 Metrics' },
-            { id: 'traces', label: '🔍 Traces' }
+            { id: 'briefing', label: '📋 Briefing' },
+            { id: 'clues', label: '🔍 Clues', locked: !this.incident.investigated },
+            { id: 'vitals', label: '📊 Vitals' },
+            { id: 'timeline', label: '⏱️ Timeline', locked: !this.incident.investigated }
         ];
 
-        const tabWidth = 120;
+        const tabWidth = 130;
         const startX = this.panelX + 30;
-        const y = this.panelY + 115;
+        const y = this.panelY + 125;
 
         tabs.forEach((tab, i) => {
             const x = startX + i * (tabWidth + 10);
             const isActive = this.activeTab === tab.id;
-            const isLocked = (tab.id === 'logs' || tab.id === 'traces') && !this.incident.investigated;
+            const isLocked = tab.locked;
 
             const bg = this.add.graphics();
             bg.fillStyle(isActive ? COLORS.accent : (isLocked ? 0x1a1a2e : 0x2a2a4a), 1);
-            bg.fillRoundedRect(x, y, tabWidth, 35, 8);
+            bg.fillRoundedRect(x, y, tabWidth, 38, 8);
 
-            const label = isLocked ? '🔒 ' + tab.label.split(' ')[1] : tab.label;
-            this.add.text(x + tabWidth / 2, y + 17, label, {
+            const label = isLocked ? '🔒' : tab.label;
+            this.add.text(x + tabWidth / 2, y + 19, label, {
                 fontSize: '14px',
+                fontFamily: 'system-ui, Segoe UI, sans-serif',
                 color: isActive ? '#000' : (isLocked ? '#666' : '#e8e8e8')
             }).setOrigin(0.5);
 
             if (!isLocked) {
-                const hitArea = this.add.rectangle(x + tabWidth / 2, y + 17, tabWidth, 35)
+                const hitArea = this.add.rectangle(x + tabWidth / 2, y + 19, tabWidth, 38)
                     .setInteractive({ useHandCursor: true });
                 hitArea.on('pointerdown', () => {
                     soundManager.play('click');
@@ -163,24 +172,41 @@ class IncidentScene extends Phaser.Scene {
             }
         });
 
-        // Investigate button (if not yet investigated)
+        // Inspect button (if not yet investigated)
         if (!this.incident.investigated && !this.incident.resolved) {
-            const invX = this.panelX + this.panelWidth - 180;
+            const invX = this.panelX + this.panelWidth - 200;
             const invBg = this.add.graphics();
             invBg.fillStyle(0x8b5cf6, 1);
-            invBg.fillRoundedRect(invX, y, 140, 35, 8);
+            invBg.fillRoundedRect(invX, y, 160, 38, 8);
 
-            this.add.text(invX + 70, y + 17, '🔍 Investigate', {
+            this.add.text(invX + 80, y + 19, '🔍 Inspect First', {
                 fontSize: '14px',
+                fontFamily: 'system-ui, Segoe UI, sans-serif',
                 fontStyle: 'bold',
                 color: '#fff'
             }).setOrigin(0.5);
 
-            this.add.rectangle(invX + 70, y + 17, 140, 35)
+            this.add.rectangle(invX + 80, y + 19, 160, 38)
                 .setInteractive({ useHandCursor: true })
+                .on('pointerover', () => {
+                    invBg.clear();
+                    invBg.fillStyle(0x9d6eff, 1);
+                    invBg.fillRoundedRect(invX, y, 160, 38, 8);
+                })
+                .on('pointerout', () => {
+                    invBg.clear();
+                    invBg.fillStyle(0x8b5cf6, 1);
+                    invBg.fillRoundedRect(invX, y, 160, 38, 8);
+                })
                 .on('pointerdown', () => {
                     soundManager.play('click');
                     gameState.investigate(this.incidentId);
+                    // Add friendly event message
+                    gameState.state.events.unshift({
+                        time: Date.now(),
+                        text: formatEventMessage('inspect', { id: this.incident.id })
+                    });
+                    gameState.saveState();
                     this.incident.investigated = true;
                     this.scene.restart({ incidentId: this.incidentId });
                 });
@@ -189,68 +215,103 @@ class IncidentScene extends Phaser.Scene {
 
     showTabContent() {
         const x = this.panelX + 30;
-        const y = this.contentY;
-        const maxWidth = 500;
+        const y = this.contentY + 10;
+        const maxWidth = 520;
 
         switch (this.activeTab) {
-            case 'info':
-                const desc = this.incident.description || this.incident.short_summary || 'No description available.';
+            case 'briefing':
+                const desc = this.incident.description || this.incident.short_summary || 'No briefing available.';
                 this.add.text(x, y, desc, {
                     fontSize: '15px',
+                    fontFamily: 'system-ui, Segoe UI, sans-serif',
                     color: '#e8e8e8',
-                    wordWrap: { width: maxWidth }
+                    wordWrap: { width: maxWidth },
+                    lineSpacing: 6
                 });
 
                 if (this.incident.services?.length) {
-                    this.add.text(x, y + 80, 'Affected Services:', {
+                    this.add.text(x, y + 100, 'Affected Systems:', {
                         fontSize: '14px',
+                        fontFamily: 'system-ui, Segoe UI, sans-serif',
                         fontStyle: 'bold',
                         color: '#a0a0a0'
                     });
-                    this.add.text(x, y + 105, this.incident.services.join(', '), {
+                    this.add.text(x, y + 125, this.incident.services.join(', '), {
                         fontSize: '14px',
+                        fontFamily: 'system-ui, Segoe UI, sans-serif',
                         color: '#e8e8e8'
                     });
                 }
                 break;
 
-            case 'logs':
+            case 'clues':
                 const logs = this.incident.logs || [];
-                const logText = logs.slice(0, 8).join('\n') || 'No logs available.';
-                this.add.text(x, y, logText, {
-                    fontSize: '13px',
-                    fontFamily: 'Consolas, monospace',
-                    color: '#a0a0a0',
-                    wordWrap: { width: maxWidth }
-                });
-                break;
-
-            case 'metrics':
-                const metrics = this.incident.metrics || {};
-                let my = y;
-                Object.entries(metrics).forEach(([key, value]) => {
-                    if (value != null) {
-                        this.add.text(x, my, `${key.replace(/_/g, ' ')}: ${typeof value === 'number' ? value.toFixed(1) : value}`, {
-                            fontSize: '15px',
-                            color: '#e8e8e8'
-                        });
-                        my += 30;
-                    }
-                });
-                if (Object.keys(metrics).length === 0) {
-                    this.add.text(x, y, 'No metrics available.', { fontSize: '15px', color: '#a0a0a0' });
+                if (logs.length === 0) {
+                    this.add.text(x, y, 'No clues available yet.', {
+                        fontSize: '15px',
+                        fontFamily: 'system-ui, Segoe UI, sans-serif',
+                        color: '#a0a0a0'
+                    });
+                } else {
+                    const logText = logs.slice(0, 8).join('\n');
+                    this.add.text(x, y, logText, {
+                        fontSize: '13px',
+                        fontFamily: 'Consolas, monospace',
+                        color: '#a0a0a0',
+                        wordWrap: { width: maxWidth },
+                        lineSpacing: 4
+                    });
                 }
                 break;
 
-            case 'traces':
+            case 'vitals':
+                const metrics = this.incident.metrics || {};
+                let my = y;
+                const entries = Object.entries(metrics).filter(([k, v]) => v != null);
+
+                if (entries.length === 0) {
+                    this.add.text(x, y, 'No vitals available.', {
+                        fontSize: '15px',
+                        fontFamily: 'system-ui, Segoe UI, sans-serif',
+                        color: '#a0a0a0'
+                    });
+                } else {
+                    entries.forEach(([key, value]) => {
+                        const label = getMetricLabel(key);
+                        this.add.text(x, my, `${label}:`, {
+                            fontSize: '14px',
+                            fontFamily: 'system-ui, Segoe UI, sans-serif',
+                            color: '#a0a0a0'
+                        });
+                        this.add.text(x + 150, my, typeof value === 'number' ? value.toFixed(1) : value, {
+                            fontSize: '14px',
+                            fontFamily: 'system-ui, Segoe UI, sans-serif',
+                            fontStyle: 'bold',
+                            color: '#e8e8e8'
+                        });
+                        my += 32;
+                    });
+                }
+                break;
+
+            case 'timeline':
                 const traces = this.incident.traces || [];
-                const traceText = traces.slice(0, 8).join('\n') || 'No traces available.';
-                this.add.text(x, y, traceText, {
-                    fontSize: '13px',
-                    fontFamily: 'Consolas, monospace',
-                    color: '#a0a0a0',
-                    wordWrap: { width: maxWidth }
-                });
+                if (traces.length === 0) {
+                    this.add.text(x, y, 'No timeline data available.', {
+                        fontSize: '15px',
+                        fontFamily: 'system-ui, Segoe UI, sans-serif',
+                        color: '#a0a0a0'
+                    });
+                } else {
+                    const traceText = traces.slice(0, 8).join('\n');
+                    this.add.text(x, y, traceText, {
+                        fontSize: '13px',
+                        fontFamily: 'Consolas, monospace',
+                        color: '#a0a0a0',
+                        wordWrap: { width: maxWidth },
+                        lineSpacing: 4
+                    });
+                }
                 break;
         }
     }
@@ -259,61 +320,64 @@ class IncidentScene extends Phaser.Scene {
         if (this.incident.resolved) return;
 
         const actions = this.incident.available_actions || this.incident.default_actions || ['rollback', 'restart', 'scale'];
-        const startX = this.panelX + 580;
+        const startX = this.panelX + 600;
         const y = this.contentY;
-        const cardWidth = 180;
-        const cardHeight = 100;
+        const cardWidth = 220;
+        const cardHeight = 90;
 
-        this.add.text(startX, y - 30, '⚡ Take Action', {
+        this.add.text(startX, y - 25, '⚡ Choose Your Move', {
             fontSize: '18px',
+            fontFamily: 'system-ui, Segoe UI, sans-serif',
             fontStyle: 'bold',
             color: '#e8e8e8'
         });
 
-        actions.slice(0, 4).forEach((action, i) => {
-            const cardY = y + 20 + i * (cardHeight + 15);
+        actions.slice(0, 4).forEach((actionId, i) => {
+            const cardY = y + 15 + i * (cardHeight + 12);
+            const display = getActionDisplay(actionId);
 
             const card = this.add.graphics();
             card.fillStyle(COLORS.panelLight, 1);
-            card.lineStyle(2, COLORS.accent, 0.5);
+            card.lineStyle(2, COLORS.accent, 0.4);
             card.fillRoundedRect(startX, cardY, cardWidth, cardHeight, 10);
             card.strokeRoundedRect(startX, cardY, cardWidth, cardHeight, 10);
 
-            // Icon based on action type
-            const icons = {
-                rollback: '↩️',
-                restart: '🔄',
-                scale: '📈',
-                'increase-pool': '🔗',
-                'disable-flag': '🚫',
-                'clear-cache': '🗑️',
-                'add-index': '📇'
-            };
-            const icon = icons[action] || '⚡';
+            // Icon
+            this.add.text(startX + 15, cardY + 12, display.icon, { fontSize: '24px' });
 
-            this.add.text(startX + 15, cardY + 15, icon, { fontSize: '24px' });
-            this.add.text(startX + 50, cardY + 18, action, {
-                fontSize: '16px',
+            // Friendly name
+            this.add.text(startX + 50, cardY + 15, display.name, {
+                fontSize: '15px',
+                fontFamily: 'system-ui, Segoe UI, sans-serif',
                 fontStyle: 'bold',
                 color: '#e8e8e8'
             });
 
-            // Hint if investigated
+            // Description
+            this.add.text(startX + 15, cardY + 45, display.desc, {
+                fontSize: '12px',
+                fontFamily: 'system-ui, Segoe UI, sans-serif',
+                color: '#a0a0a0',
+                wordWrap: { width: cardWidth - 30 }
+            });
+
+            // Effect hint
+            this.add.text(startX + cardWidth - 15, cardY + 15, display.effect, {
+                fontSize: '11px',
+                fontFamily: 'system-ui, Segoe UI, sans-serif',
+                color: display.effect === 'risky' ? '#ef4444' : '#10b981'
+            }).setOrigin(1, 0);
+
+            // Recommended hint if investigated
             if (this.incident.investigated) {
                 const correct = gameState.getCorrectAction(this.incident);
-                if (action === correct) {
-                    this.add.text(startX + cardWidth - 35, cardY + 15, '⭐', { fontSize: '20px' });
+                if (actionId === correct) {
+                    this.add.text(startX + cardWidth - 15, cardY + cardHeight - 18, '⭐ Best choice', {
+                        fontSize: '11px',
+                        fontFamily: 'system-ui, Segoe UI, sans-serif',
+                        color: '#FFDD00'
+                    }).setOrigin(1, 0);
                 }
-            }
-
-            // Action note if available
-            const actions_data = this.incident.actions || [];
-            const actionData = actions_data.find(a => a.name === action);
-            if (actionData?.note) {
-                this.add.text(startX + 15, cardY + 55, actionData.note.substring(0, 25), {
-                    fontSize: '11px',
-                    color: '#a0a0a0'
-                });
             }
 
             // Interactive
@@ -331,29 +395,48 @@ class IncidentScene extends Phaser.Scene {
             hitArea.on('pointerout', () => {
                 card.clear();
                 card.fillStyle(COLORS.panelLight, 1);
-                card.lineStyle(2, COLORS.accent, 0.5);
+                card.lineStyle(2, COLORS.accent, 0.4);
                 card.fillRoundedRect(startX, cardY, cardWidth, cardHeight, 10);
                 card.strokeRoundedRect(startX, cardY, cardWidth, cardHeight, 10);
             });
 
-            hitArea.on('pointerdown', () => this.executeAction(action));
+            hitArea.on('pointerdown', () => this.executeAction(actionId));
         });
     }
 
-    executeAction(actionName) {
-        const result = gameState.takeAction(this.incidentId, actionName);
+    executeAction(actionId) {
+        const display = getActionDisplay(actionId);
+        const result = gameState.takeAction(this.incidentId, actionId);
+
+        // Clear old event and add friendly one
+        if (gameState.state.events.length > 0) {
+            gameState.state.events.shift();
+        }
 
         if (result.success) {
             soundManager.play('resolve');
-            // Particle burst effect
+            gameState.state.events.unshift({
+                time: Date.now(),
+                text: formatEventMessage('action_success', { id: this.incident.id, action: actionId })
+            });
+            gameState.state.events.unshift({
+                time: Date.now(),
+                text: formatEventMessage('resolve', { id: this.incident.id })
+            });
             this.createResolveParticles();
         } else {
+            const msgType = result.delta < -15 ? 'action_worsen' : 'action_fail';
             soundManager.play(result.delta < -15 ? 'error' : 'warning');
-            // Camera shake for worsening
+            gameState.state.events.unshift({
+                time: Date.now(),
+                text: formatEventMessage(msgType, { id: this.incident.id, action: actionId })
+            });
             if (result.delta < -15) {
-                this.cameras.main.shake(200, 0.01);
+                this.cameras.main.shake(200, 0.008);
             }
         }
+
+        gameState.saveState();
 
         // Show floating score delta
         this.showScoreDelta(result.delta);
@@ -366,18 +449,19 @@ class IncidentScene extends Phaser.Scene {
 
     createResolveParticles() {
         const { width, height } = this.cameras.main;
-        for (let i = 0; i < 20; i++) {
-            const x = width / 2 + Phaser.Math.Between(-100, 100);
-            const y = height / 2 + Phaser.Math.Between(-50, 50);
-            const particle = this.add.circle(x, y, Phaser.Math.Between(3, 8), COLORS.success, 0.8);
+        for (let i = 0; i < 25; i++) {
+            const x = width / 2 + Phaser.Math.Between(-150, 150);
+            const y = height / 2 + Phaser.Math.Between(-80, 80);
+            const colors = [COLORS.success, COLORS.accent, COLORS.accentAlt];
+            const particle = this.add.circle(x, y, Phaser.Math.Between(4, 10), Phaser.Math.RND.pick(colors), 0.9);
 
             this.tweens.add({
                 targets: particle,
-                x: x + Phaser.Math.Between(-150, 150),
-                y: y + Phaser.Math.Between(-150, 150),
+                x: x + Phaser.Math.Between(-200, 200),
+                y: y + Phaser.Math.Between(-200, 200),
                 alpha: 0,
                 scale: 0,
-                duration: 600,
+                duration: 700,
                 ease: 'Power2'
             });
         }
@@ -389,15 +473,16 @@ class IncidentScene extends Phaser.Scene {
         const text = (delta > 0 ? '+' : '') + delta;
         const color = delta > 0 ? '#10b981' : '#ef4444';
 
-        const scoreText = this.add.text(width / 2, height / 2 - 100, text, {
-            fontSize: '48px',
+        const scoreText = this.add.text(width / 2, height / 2 - 120, text, {
+            fontSize: '56px',
+            fontFamily: 'system-ui, Segoe UI, sans-serif',
             fontStyle: 'bold',
             color
         }).setOrigin(0.5);
 
         this.tweens.add({
             targets: scoreText,
-            y: height / 2 - 180,
+            y: height / 2 - 200,
             alpha: 0,
             duration: 1000,
             ease: 'Power2'
@@ -408,22 +493,23 @@ class IncidentScene extends Phaser.Scene {
         const y = this.panelY + this.panelHeight - 50;
 
         // Back button
-        this.createButton(this.panelX + 120, y, '← Back to Map', () => this.closeScene());
+        this.createButton(this.panelX + 140, y, '← Back to War Room', () => this.closeScene());
     }
 
     createButton(x, y, text, callback) {
         const bg = this.add.graphics();
         bg.fillStyle(COLORS.panelLight, 1);
         bg.lineStyle(1, 0x3a3a5a, 1);
-        bg.fillRoundedRect(x - 80, y - 18, 160, 36, 8);
-        bg.strokeRoundedRect(x - 80, y - 18, 160, 36, 8);
+        bg.fillRoundedRect(x - 100, y - 20, 200, 40, 8);
+        bg.strokeRoundedRect(x - 100, y - 20, 200, 40, 8);
 
         this.add.text(x, y, text, {
             fontSize: '14px',
+            fontFamily: 'system-ui, Segoe UI, sans-serif',
             color: '#e8e8e8'
         }).setOrigin(0.5);
 
-        this.add.rectangle(x, y, 160, 36)
+        this.add.rectangle(x, y, 200, 40)
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => {
                 soundManager.play('click');
@@ -434,7 +520,6 @@ class IncidentScene extends Phaser.Scene {
     closeScene() {
         this.scene.stop();
         this.scene.resume('WorldScene');
-        // Refresh WorldScene
         this.scene.get('WorldScene').scene.restart();
     }
 }

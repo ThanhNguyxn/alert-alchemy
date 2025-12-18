@@ -34,6 +34,61 @@ const SCORING = {
     investigateBonus: 5
 };
 
+const TUTORIAL_KEY = 'alert-alchemy-tutorial-seen';
+
+// ═══════════════════════════════════════════════════════════════
+// UI Friendly Mappings (display only - internal IDs unchanged)
+// ═══════════════════════════════════════════════════════════════
+
+const ACTION_DISPLAY = {
+    'rollback': { icon: '↩️', name: 'Roll back release', desc: 'Undo the last deploy', effect: '↓ errors' },
+    'scale': { icon: '📈', name: 'Scale up', desc: 'Add more instances', effect: '↓ latency' },
+    'restart': { icon: '🔄', name: 'Restart service', desc: 'Quick reset (may not fix root cause)', effect: 'risky' },
+    'disable-flag': { icon: '🧯', name: 'Turn off feature', desc: 'Disable risky feature flag', effect: '↓ errors' },
+    'increase-pool': { icon: '🧱', name: 'Increase DB pool', desc: 'Raise max connections', effect: '↓ timeouts' },
+    'increase_pool': { icon: '🧱', name: 'Increase DB pool', desc: 'Raise max connections', effect: '↓ timeouts' },
+    'clear-cache': { icon: '🧼', name: 'Flush cache', desc: 'Clear stale hot keys', effect: '↓ errors' },
+    'clear_cache': { icon: '🧼', name: 'Flush cache', desc: 'Clear stale hot keys', effect: '↓ errors' },
+    'add-index': { icon: '🗂️', name: 'Add index', desc: 'Speed up slow query (takes time)', effect: '↓ latency' },
+    'add_index': { icon: '🗂️', name: 'Add index', desc: 'Speed up slow query (takes time)', effect: '↓ latency' },
+};
+
+const METRIC_LABELS = {
+    'error_rate': 'Error Rate',
+    'p95_latency': 'Latency (p95)',
+    'p99_latency': 'Latency (p99)',
+    'cpu_usage': 'CPU Usage',
+    'memory_usage': 'Memory',
+    'request_rate': 'Requests/sec',
+    'queue_depth': 'Queue Depth',
+    'connection_pool': 'DB Connections'
+};
+
+function getActionDisplay(actionId) {
+    return ACTION_DISPLAY[actionId] || {
+        icon: '⚡',
+        name: actionId.replace(/[-_]/g, ' '),
+        desc: 'Take this action',
+        effect: '?'
+    };
+}
+
+function getMetricLabel(key) {
+    return METRIC_LABELS[key] || key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+}
+
+function formatEventMessage(type, data) {
+    const messages = {
+        inspect: `🔍 You inspected ${data.id}. New clues unlocked in Vitals and Timeline.`,
+        action_success: `✅ ${getActionDisplay(data.action).name} worked! ${data.id} is now stable.`,
+        action_fail: `⚠️ ${getActionDisplay(data.action).name} applied. Watching for changes...`,
+        action_worsen: `🔥 That made things worse! Consider a different approach.`,
+        tick: `⏰ One minute passed. Step ${data.step}.`,
+        resolve: `🎉 Great work! ${data.id} has been resolved.`
+    };
+    return messages[type] || data.text || 'Something happened.';
+}
+
 // ═══════════════════════════════════════════════════════════════
 // Global State Manager
 // ═══════════════════════════════════════════════════════════════
