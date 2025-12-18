@@ -38,6 +38,8 @@
       "enable-cache"
     ],
     "correct_action": "increase-pool",
+    "short_summary": "The order-service is unable to acquire database connections.",
+    "severity_rank": 0,
     "resolution": {
       "optimal_path": [
         "increase-pool"
@@ -127,6 +129,8 @@
       "enable-cache"
     ],
     "correct_action": "rollback",
+    "short_summary": "The user-service pods are experiencing OOMKilled restarts every 2-3 hours.",
+    "severity_rank": 1,
     "resolution": {
       "optimal_path": [
         "rollback"
@@ -199,6 +203,8 @@
       "enable-cache"
     ],
     "correct_action": "disable-flag",
+    "short_summary": "After a feature flag change at 09:45 UTC, the recommendation-service\nis throwing NullPointerException on 30% of requests.",
+    "severity_rank": 1,
     "resolution": {
       "optimal_path": [
         "disable-flag"

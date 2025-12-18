@@ -99,6 +99,19 @@ def load_incident(filepath: Path) -> dict | None:
             "correct_action": data.get("correct_action", ""),
         }
         
+        # Derived fields for game
+        desc = incident["description"]
+        incident["short_summary"] = desc.split(".")[0] + "." if desc and "." in desc else desc
+        incident["severity_rank"] = get_severity_order(incident["severity"])
+        
+        # Default actions if none provided
+        if not incident["available_actions"]:
+            incident["default_actions"] = ["rollback", "restart", "scale", "disable-flag", "clear-cache"]
+        
+        # Actions with notes (if structured actions exist)
+        if "actions" in data and isinstance(data["actions"], list):
+            incident["actions"] = data["actions"]
+        
         # Passthrough other useful fields
         for key in ["resolution", "playbook", "optimal_resolution_steps", "timeline"]:
             if key in data:
